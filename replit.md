@@ -122,6 +122,10 @@ The system uses a relational database structure with the following main entities
 ```
 Changelog:
 - July 02, 2025. Initial setup
+- July 02, 2025. Tema financeiro dourado implementado
+- July 02, 2025. Campo CPF adicionado para mercado brasileiro
+- July 02, 2025. Erro SQL corrigido no método getAffiliatePerformance
+- July 02, 2025. Guia completo de implementação de rotas criado (IMPLEMENTACAO_ROTAS.md)
 ```
 
 ## User Preferences

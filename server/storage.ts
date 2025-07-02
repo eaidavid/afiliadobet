@@ -1,6 +1,6 @@
 import { users, affiliateProfiles, bettingHouses, affiliateLinks, affiliateEvents, clicks, registrations, deposits, payments, type User, type InsertUser, type AffiliateProfile, type InsertAffiliateProfile, type BettingHouse, type InsertBettingHouse, type AffiliateLink, type InsertAffiliateLink, type AffiliateEvent, type InsertAffiliateEvent, type Click, type InsertClick, type Registration, type InsertRegistration, type Deposit, type InsertDeposit, type Payment, type InsertPayment } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, count, sum } from "drizzle-orm";
+import { eq, desc, and, sql, count, sum, gte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -283,6 +283,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAffiliatePerformance(userId: number, days: number = 7): Promise<any[]> {
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - days);
+    
     return await db.select({
       date: sql`DATE(${clicks.timestamp})`,
       clicks: count(clicks.id),
@@ -294,7 +297,7 @@ export class DatabaseStorage implements IStorage {
       ))
       .where(and(
         eq(clicks.affiliateId, userId),
-        sql`${clicks.timestamp} >= NOW() - INTERVAL '${days} days'`
+        sql`${clicks.timestamp} >= ${daysAgo}`
       ))
       .groupBy(sql`DATE(${clicks.timestamp})`)
       .orderBy(sql`DATE(${clicks.timestamp})`);
