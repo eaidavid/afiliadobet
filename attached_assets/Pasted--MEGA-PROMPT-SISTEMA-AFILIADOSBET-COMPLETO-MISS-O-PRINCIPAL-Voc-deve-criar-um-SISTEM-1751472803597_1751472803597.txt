@@ -1,0 +1,563 @@
+
+# 🚀 MEGA PROMPT: SISTEMA AFILIADOSBET COMPLETO
+
+## 🎯 MISSÃO PRINCIPAL
+Você deve criar um **SISTEMA DE AFILIADOS PARA CASAS DE APOSTAS** robusto, escalável e 100% funcional. Este é um projeto CRÍTICO que precisa funcionar perfeitamente em produção.
+
+## 📋 ARQUITETURA OBRIGATÓRIA
+
+### STACK TECNOLÓGICO FIXO
+```bash
+# Backend
+- Node.js 20+ com TypeScript
+- Express.js (servidor web)
+- PostgreSQL (produção) / SQLite (desenvolvimento)
+- Drizzle ORM (migrations automáticas)
+- bcrypt (autenticação)
+- express-session (sessões)
+
+# Frontend
+- React 18 com TypeScript
+- Vite (build system)
+- Tailwind CSS + Shadcn/UI
+- Wouter (roteamento)
+- React Query (cache/estado)
+- Lucide React (ícones)
+
+# Estrutura de Deploy
+- Porta 5000 (obrigatória)
+- Host 0.0.0.0 (acessível externamente)
+- Build único para produção
+```
+
+### ESTRUTURA DE PASTAS OBRIGATÓRIA
+```
+projeto/
+├── client/                 # Frontend React
+│   ├── src/
+│   │   ├── components/     # Componentes UI
+│   │   ├── pages/          # Páginas do sistema
+│   │   ├── hooks/          # Custom hooks
+│   │   └── lib/            # Utilitários
+├── server/                 # Backend Node.js
+│   ├── routes.ts           # Todas as rotas API
+│   ├── auth.ts             # Sistema de autenticação
+│   ├── storage.ts          # Camada de dados
+│   └── index.ts            # Servidor principal
+├── shared/                 # Código compartilhado
+│   └── schema.ts           # Schema do banco
+└── package.json            # Dependências
+```
+
+## 🔐 SISTEMA DE AUTENTICAÇÃO
+
+### REQUISITOS DE AUTH
+1. **Dois tipos de usuário**: `admin` e `affiliate`
+2. **Login**: Por username/email + senha
+3. **Sessões persistentes**: express-session
+4. **Senhas hash**: bcrypt
+5. **Middleware de proteção**: todas as rotas protegidas
+
+### FLUXO DE AUTENTICAÇÃO
+```typescript
+// Middleware obrigatório
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.status(401).json({ message: "Unauthorized" });
+}
+
+function isAdmin(req, res, next) {
+  if (req.user.role === "admin") return next();
+  res.status(403).json({ message: "Forbidden" });
+}
+```
+
+## 🏗️ BANCO DE DADOS OBRIGATÓRIO
+
+### TABELAS PRINCIPAIS
+```sql
+-- Usuários (afiliados e admins)
+users: id, username, password, email, role, fullName, createdAt
+
+-- Perfis de afiliados (dados específicos)
+affiliate_profiles: userId, points, level, totalCommission, availableBalance
+
+-- Casas de apostas
+betting_houses: id, name, description, logoUrl, websiteUrl, baseCpaCommission, baseRevSharePercent, isActive
+
+-- Links de afiliado
+affiliate_links: id, userId, bettingHouseId, linkCode, fullUrl, customName, isActive, createdAt
+
+-- Eventos de rastreamento
+affiliate_events: id, subid, eventType, affiliateId, timestamp, ipAddress, depositAmount, commissionAmount, status
+
+-- Cliques de rastreamento
+clicks: id, affiliateId, ip, userAgent, timestamp, converted
+
+-- Registros convertidos
+registrations: id, affiliateId, username, timestamp, deposited
+
+-- Depósitos
+deposits: id, registrationId, amount, commissionAmount, timestamp, status
+```
+
+## 📊 PAINEL ADMINISTRATIVO (13 ROTAS)
+
+### ROTAS ADMIN OBRIGATÓRIAS
+```typescript
+// 1. Dashboard Admin - /admin
+- Métricas globais: total afiliados, conversões, receita
+- Gráficos de performance
+- Top afiliados do mês
+
+// 2. Gerenciar Afiliados - /admin/affiliates  
+- Lista completa de afiliados
+- Aprovar/rejeitar novos afiliados
+- Editar comissões personalizadas
+- Ver detalhes de performance
+
+// 3. Casas de Apostas - /admin/betting-houses
+- CRUD completo de casas parceiras
+- Configurar comissões base (CPA + RevShare)
+- Upload de logos
+- Ativar/desativar casas
+
+// 4. Relatórios Admin - /admin/reports
+- Relatórios de conversão por período
+- Export para CSV/Excel
+- Gráficos de funil de conversão
+- Análise por dispositivo/fonte
+
+// 5. Pagamentos Admin - /admin/payments
+- Processar pagamentos de afiliados
+- Histórico de comissões pagas
+- Pendências de pagamento
+- Configurar métodos de pagamento
+
+// 6. Configurações - /admin/settings
+- Configurações globais do sistema
+- APIs e integrações
+- Comissões padrão
+- Regras de negócio
+```
+
+### COMPONENTES ADMIN OBRIGATÓRIOS
+```typescript
+// AdminLayout: Layout base com sidebar
+// AffiliateDetailsDialog: Modal com detalhes do afiliado
+// AdminOnboardingProvider: Tour inicial
+// MetricsCards: Cards de métricas
+// DataTable: Tabela com paginação e filtros
+```
+
+## 👤 PAINEL DO AFILIADO (6 ROTAS)
+
+### ROTAS AFILIADO OBRIGATÓRIAS
+```typescript
+// 1. Dashboard - /home
+- Métricas pessoais: cliques, conversões, comissões
+- Gráfico de performance semanal/mensal
+- Links mais performáticos
+
+// 2. Casas Disponíveis - /betting-houses
+- Lista de casas parceiras ativas
+- Comissões oferecidas (CPA + RevShare)
+- Botão para gerar link de afiliado
+
+// 3. Meus Links - /my-links
+- Lista de links gerados pelo afiliado
+- Performance individual de cada link
+- Editar nomes personalizados
+- Copiar/compartilhar links
+
+// 4. Relatórios - /reports
+- Relatórios detalhados de performance
+- Filtros por período, casa, campanhas
+- Gráficos de conversão
+
+// 5. Pagamentos - /payments
+- Histórico de comissões recebidas
+- Saldo disponível vs pendente
+- Solicitar saques
+- Configurar dados de pagamento (PIX)
+
+// 6. Perfil - /profile
+- Dados pessoais e contato
+- Alterar senha
+- Configurações de notificações
+- Upload de foto de perfil
+```
+
+### COMPONENTES AFILIADO OBRIGATÓRIOS
+```typescript
+// AffiliateLayout: Layout base com sidebar
+// PerformanceChart: Gráfico de performance
+// LinkGenerator: Gerador de links
+// PaymentHistory: Histórico de pagamentos
+// ProfileForm: Formulário de perfil
+```
+
+## 🔗 SISTEMA DE RASTREAMENTO
+
+### FLUXO DE AFILIAÇÃO OBRIGATÓRIO
+```typescript
+// 1. Clique no link de afiliado
+GET /ref/:subid
+- Registra clique no banco
+- Define cookie de rastreamento (90 dias)
+- Redireciona para casa de apostas
+
+// 2. Usuário se registra na casa
+POST /api/tracking/registration
+- Associa registro ao afiliado via cookie
+- Calcula comissão CPA
+- Atualiza métricas
+
+// 3. Usuário faz depósito
+POST /api/tracking/deposit  
+- Associa depósito ao afiliado
+- Calcula comissão RevShare
+- Atualiza saldos
+```
+
+### APIS DE RASTREAMENTO
+```typescript
+// Rastrear clique
+app.get("/ref/:subid", async (req, res) => {
+  // Buscar afiliado pelo subid
+  // Registrar clique com IP, user-agent, timestamp
+  // Definir cookie de rastreamento
+  // Redirecionar para casa de apostas
+});
+
+// Rastrear registro
+app.post("/api/tracking/registration", async (req, res) => {
+  // Verificar cookie de afiliado
+  // Registrar conversão
+  // Calcular comissão CPA
+  // Atualizar métricas do afiliado
+});
+
+// Rastrear depósito
+app.post("/api/tracking/deposit", async (req, res) => {
+  // Verificar associação com afiliado
+  // Calcular comissão RevShare
+  // Atualizar saldos
+  // Notificar afiliado
+});
+```
+
+## 💰 SISTEMA DE COMISSÕES
+
+### TIPOS DE COMISSÃO
+```typescript
+// CPA (Cost Per Acquisition) - Valor fixo por registro
+interface CPACommission {
+  value: number;        // Ex: R$ 50 por registro
+  house: string;        // Casa de apostas
+  affiliate: string;    // Afiliado específico (opcional)
+}
+
+// RevShare - Porcentagem sobre depósitos
+interface RevShareCommission {
+  percentage: number;   // Ex: 25% sobre depósitos
+  lifetime: boolean;    // Comissão vitalícia ou por período
+  house: string;
+  affiliate: string;
+}
+```
+
+### CÁLCULO AUTOMÁTICO
+```typescript
+// Função obrigatória para calcular comissões
+async function calculateCommission(
+  eventType: 'registration' | 'deposit',
+  affiliateId: number,
+  houseId: number,
+  amount?: number
+): Promise<number> {
+  // Buscar comissões configuradas
+  // Aplicar regras específicas do afiliado
+  // Calcular valor final
+  // Retornar comissão em centavos
+}
+```
+
+## 🎨 DESIGN SYSTEM OBRIGATÓRIO
+
+### CORES FIXAS (NÃO CUSTOMIZAR)
+```css
+/* Tema escuro obrigatório */
+--primary: #3B82F6;        /* Azul principal */
+--secondary: #10B981;      /* Verde secundário */
+--accent: #8B5CF6;         /* Roxo de destaque */
+--danger: #EF4444;         /* Vermelho de erro */
+--warning: #F59E0B;        /* Amarelo de aviso */
+--background: #0F172A;     /* Fundo escuro */
+--surface: #1E293B;        /* Superfície */
+--muted: #64748B;          /* Texto secundário */
+--foreground: #F8FAFC;     /* Texto principal */
+```
+
+### COMPONENTES UI OBRIGATÓRIOS
+```typescript
+// Cards responsivos com glassmorphism
+// Botões com estados hover/loading/disabled
+// Tabelas com paginação e ordenação
+// Formulários com validação em tempo real
+// Modais/dialogs responsivos
+// Sidebars colapsáveis
+// Gráficos interativos (Chart.js/Recharts)
+// Loading states elegantes
+```
+
+## 📱 RESPONSIVIDADE CRÍTICA
+
+### BREAKPOINTS OBRIGATÓRIOS
+```css
+/* Mobile First - Obrigatório */
+sm: 640px   /* Tablet pequeno */
+md: 768px   /* Tablet */
+lg: 1024px  /* Desktop pequeno */
+xl: 1280px  /* Desktop grande */
+2xl: 1536px /* Desktop muito grande */
+```
+
+### COMPORTAMENTOS MOBILE
+```typescript
+// Sidebar: Overlay em mobile, fixa em desktop
+// Tabelas: Scroll horizontal em mobile
+// Cards: Stack vertical em mobile
+// Formulários: Inputs maiores em mobile
+// Botões: Touch-friendly (min 44px)
+```
+
+## 🔧 APIS CRÍTICAS DO BACKEND
+
+### ROTAS DE MÉTRICAS
+```typescript
+// Métricas do afiliado
+GET /api/metrics              // Métricas gerais
+GET /api/affiliate/stats      // Estatísticas detalhadas  
+GET /api/affiliate/chart      // Dados para gráficos
+GET /api/affiliate/clicks     // Lista de cliques
+GET /api/affiliate/activities // Atividades recentes
+
+// Métricas admin
+GET /api/admin/stats          // Estatísticas da plataforma
+GET /api/admin/affiliates     // Lista de afiliados
+GET /api/admin/reports        // Relatórios avançados
+```
+
+### ROTAS DE GESTÃO
+```typescript
+// Casas de apostas
+GET    /api/betting-houses           // Listar casas
+POST   /api/betting-houses           // Criar casa
+PUT    /api/betting-houses/:id       // Atualizar casa
+DELETE /api/betting-houses/:id       // Deletar casa
+
+// Links de afiliado
+GET    /api/affiliate-links          // Meus links
+POST   /api/affiliate-links          // Criar link
+PUT    /api/affiliate-links/:id      // Atualizar link
+DELETE /api/affiliate-links/:id      // Deletar link
+
+// Perfil de usuário
+GET    /api/profile                  // Dados do perfil
+PUT    /api/profile/address          // Atualizar endereço
+PUT    /api/profile/contact          // Atualizar contato
+PUT    /api/profile/picture          // Atualizar foto
+```
+
+## 🚀 FUNCIONALIDADES AVANÇADAS
+
+### SISTEMA DE NÍVEIS DE AFILIADO
+```typescript
+// Níveis baseados em performance
+const affiliateLevels = {
+  'Novato': { minCommission: 0, bonusPercent: 0 },
+  'Bronze': { minCommission: 1000, bonusPercent: 5 },
+  'Prata': { minCommission: 5000, bonusPercent: 10 },
+  'Ouro': { minCommission: 15000, bonusPercent: 15 },
+  'Diamante': { minCommission: 50000, bonusPercent: 25 }
+};
+```
+
+### SISTEMA DE PONTOS
+```typescript
+// Pontos por ações
+const pointsSystem = {
+  'first_registration': 100,
+  'daily_login': 10,
+  'link_created': 25,
+  'conversion_achieved': 50,
+  'deposit_conversion': 100
+};
+```
+
+### NOTIFICAÇÕES EM TEMPO REAL
+```typescript
+// Sistema de notificações
+interface Notification {
+  id: string;
+  type: 'success' | 'warning' | 'info' | 'error';
+  title: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+}
+```
+
+## 🛡️ SEGURANÇA OBRIGATÓRIA
+
+### VALIDAÇÕES CRÍTICAS
+```typescript
+// Middleware de segurança
+- Rate limiting nas APIs críticas
+- Validação de inputs com Zod
+- Sanitização de dados do usuário
+- CORS configurado corretamente
+- Headers de segurança obrigatórios
+
+// Validação de sessão
+- Timeout de sessão (24h)
+- Regeneração de session ID
+- Verificação de IP (opcional)
+```
+
+### TRATAMENTO DE ERROS
+```typescript
+// Wrapper obrigatório para todas as funções
+async function safeExecute<T>(
+  operation: () => Promise<T>,
+  fallback: T,
+  errorMessage: string
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    console.error(errorMessage, error);
+    return fallback;
+  }
+}
+```
+
+## 📊 MÉTRICAS E ANALYTICS
+
+### DASHBOARDS OBRIGATÓRIOS
+```typescript
+// Dashboard Admin
+- Total de afiliados ativos/inativos
+- Receita total do período
+- Top 5 afiliados por comissão
+- Funil de conversão global
+- Gráfico de crescimento mensal
+
+// Dashboard Afiliado  
+- Cliques do dia/semana/mês
+- Taxa de conversão atual
+- Comissões pendentes/pagas
+- Performance por casa de apostas
+- Ranking entre afiliados
+```
+
+### RELATÓRIOS EXPORTÁVEIS
+```typescript
+// Formatos obrigatórios
+- CSV (performance, comissões, cliques)
+- Excel (relatórios mensais)
+- PDF (relatórios executivos)
+- JSON (dados para APIs)
+```
+
+## 🔄 INTEGRAÇÃO COM CASAS DE APOSTAS
+
+### SISTEMA DE POSTBACK
+```typescript
+// URL de postback configurável por casa
+interface PostbackConfig {
+  houseId: number;
+  registrationUrl: string;  // URL para registros
+  depositUrl: string;       // URL para depósitos
+  testMode: boolean;        // Modo de teste
+  secretKey: string;        // Chave de validação
+}
+
+// Envio automático de postback
+async function sendPostback(
+  config: PostbackConfig,
+  eventData: AffiliateEvent
+): Promise<boolean> {
+  // Montar payload
+  // Enviar requisição HTTP
+  // Registrar log de envio
+  // Tratar retries automáticos
+}
+```
+
+## 🚀 DEPLOY E PRODUÇÃO
+
+### CONFIGURAÇÃO DE PRODUÇÃO
+```typescript
+// Variáveis de ambiente obrigatórias
+DATABASE_URL=postgresql://...     // PostgreSQL para produção
+SESSION_SECRET=random_secret      // Chave de sessão
+NODE_ENV=production              // Ambiente
+PORT=5000                        // Porta obrigatória
+
+// Scripts de build
+npm run build    // Build do frontend + backend
+npm run start    // Iniciar em produção
+npm run dev      // Desenvolvimento local
+```
+
+### ESTRUTURA DE BUILD
+```typescript
+// Build unificado
+dist/
+├── client/          # Frontend buildado
+├── server/          # Backend compilado
+└── index.js         # Entrada principal
+```
+
+## ✅ CHECKLIST DE ENTREGA
+
+### FUNCIONALIDADES CRÍTICAS
+- [ ] Sistema de auth completo (login/logout/sessões)
+- [ ] 13 rotas principais funcionando
+- [ ] Sistema de rastreamento (cliques → registros → depósitos)
+- [ ] Cálculo automático de comissões
+- [ ] Dashboards com métricas reais
+- [ ] CRUD de casas de apostas
+- [ ] Gestão de afiliados (aprovar/rejeitar)
+- [ ] Sistema de perfil completo
+- [ ] Responsividade mobile perfeita
+- [ ] Deploy em produção funcionando
+
+### QUALIDADE DE CÓDIGO
+- [ ] TypeScript em 100% do código
+- [ ] Tratamento de erros robusto
+- [ ] Validação de dados com Zod
+- [ ] Interface consistente com Shadcn/UI
+- [ ] Performance otimizada (lazy loading, cache)
+- [ ] Código documentado e limpo
+
+## 🎯 RESULTADO ESPERADO
+
+O sistema deve ser um **PRODUTO COMPLETO** que pode ser usado imediatamente por casas de apostas e afiliados. Deve ter a qualidade de um software comercial, com interface profissional, performance rápida e zero bugs críticos.
+
+O foco é criar um sistema que **FUNCIONE 100%** na primeira execução, sem necessidade de correções pós-entrega.
+
+## ⚡ COMEÇAR AGORA
+
+1. **Criar a estrutura base** (pastas, package.json, configurações)
+2. **Implementar autenticação** (login, sessões, middleware)
+3. **Criar banco de dados** (schema, migrations, seed data)
+4. **Desenvolver backend APIs** (todas as rotas críticas)
+5. **Implementar frontend** (componentes, páginas, responsividade)
+6. **Sistema de rastreamento** (links, conversões, comissões)
+7. **Dashboards e relatórios** (métricas, gráficos, exports)
+8. **Testes e deploy** (validação completa, produção)
+
+**HORA DE CODAR! 🚀**
