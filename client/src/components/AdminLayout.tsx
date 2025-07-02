@@ -2,17 +2,61 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "wouter";
-import { LayoutDashboard, Users, Building, BarChart3, CreditCard, Settings, LogOut, Bell } from "lucide-react";
+import { useLocation, Link } from "wouter";
+import { LayoutDashboard, Users, Building, BarChart3, CreditCard, Settings, LogOut, Bell, ChevronRight, ChevronDown } from "lucide-react";
 import Layout from "./Layout";
+import { useState } from "react";
 
 const adminNavItems = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Afiliados", url: "/admin/affiliates", icon: Users },
-  { title: "Casas de Apostas", url: "/admin/betting-houses", icon: Building },
-  { title: "Relatórios", url: "/admin/reports", icon: BarChart3 },
-  { title: "Pagamentos", url: "/admin/payments", icon: CreditCard },
-  { title: "Configurações", url: "/admin/settings", icon: Settings },
+  { 
+    title: "Dashboard", 
+    url: "/admin/dashboard", 
+    icon: LayoutDashboard,
+    color: "text-yellow-400"
+  },
+  { 
+    title: "Afiliados", 
+    url: "/admin/affiliates", 
+    icon: Users,
+    color: "text-green-400",
+    subItems: [
+      { title: "Lista de Afiliados", url: "/admin/affiliates" },
+      { title: "Performance", url: "/admin/affiliates/performance" }
+    ]
+  },
+  { 
+    title: "Casas de Apostas", 
+    url: "/admin/betting-houses", 
+    icon: Building,
+    color: "text-blue-400"
+  },
+  { 
+    title: "Relatórios", 
+    url: "/admin/reports", 
+    icon: BarChart3,
+    color: "text-purple-400",
+    subItems: [
+      { title: "Receita", url: "/admin/reports/revenue" },
+      { title: "Performance", url: "/admin/reports/performance" },
+      { title: "Conversões", url: "/admin/reports/conversions" }
+    ]
+  },
+  { 
+    title: "Pagamentos", 
+    url: "/admin/payments", 
+    icon: CreditCard,
+    color: "text-emerald-400"
+  },
+  { 
+    title: "Configurações", 
+    url: "/admin/settings", 
+    icon: Settings,
+    color: "text-slate-400",
+    subItems: [
+      { title: "Geral", url: "/admin/settings/general" },
+      { title: "Comissões", url: "/admin/settings/commission" }
+    ]
+  },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -1,0 +1,247 @@
+
+# 🚀 MEGA PROMPT - SISTEMA DE ROTAS COMPLETO AFILIADOSBET
+
+## 📋 **MISSÃO PRINCIPAL**
+Você deve criar um sistema de roteamento completo e funcional para o AfiliadosBet, implementando todas as páginas com funcionalidades avançadas, navegação real entre páginas, e melhorias visuais com tema financeiro/investimentos.
+
+---
+
+## 🎯 **OBJETIVOS ESPECÍFICOS**
+
+### **1. SISTEMA DE ROTAS AVANÇADO**
+- Implementar roteamento real para todas as páginas (não apenas mudança de componente)
+- Criar URLs amigáveis e intuitivas para cada seção
+- Implementar navegação com histórico do browser
+- Adicionar breadcrumbs para melhor navegação
+- Configurar rotas protegidas por role (admin/affiliate)
+
+### **2. PÁGINAS FUNCIONAIS COMPLETAS**
+- **Dashboard Admin**: Estatísticas em tempo real, gráficos interativos, resumo financeiro
+- **Gestão de Afiliados**: CRUD completo, filtros avançados, análise de performance
+- **Casas de Apostas**: Gestão completa, configuração de comissões, integração de APIs
+- **Relatórios**: Dashboards analíticos, exportação de dados, filtros temporais
+- **Pagamentos**: Sistema de aprovação, histórico detalhado, integração PIX
+- **Configurações**: Painel de configuração do sistema, preferências
+
+### **3. PAINEL AFILIADO COMPLETO**
+- **Dashboard**: Métricas pessoais, performance em tempo real
+- **Meus Links**: Gerador de links, analytics detalhados, campanhas
+- **Relatórios**: Performance pessoal, comissões ganhas, conversões
+- **Pagamentos**: Solicitações de saque, histórico de recebimentos
+- **Perfil**: Configurações pessoais, dados bancários, preferências
+
+### **4. MELHORIAS VISUAIS E UX**
+- Implementar tema financeiro com cores ouro, verde e azul
+- Adicionar margens e espaçamentos adequados
+- Criar componentes visuais avançados (cards financeiros, gráficos, badges)
+- Implementar animações suaves e transições
+- Adicionar loading states e feedback visual
+- Criar layouts responsivos para mobile
+
+### **5. FUNCIONALIDADES AVANÇADAS**
+- Sistema de notificações em tempo real
+- Filtros avançados em todas as listagens
+- Paginação inteligente
+- Busca global no sistema
+- Exportação de dados (PDF, Excel)
+- Modo escuro/claro
+- Shortcuts de teclado
+
+---
+
+## 🛠️ **INSTRUÇÕES DETALHADAS**
+
+### **ROTEAMENTO**
+- Configure o sistema de rotas usando React Router ou Wouter
+- Implemente rotas aninhadas para admin e affiliate
+- Crie middleware para proteção de rotas
+- Adicione parâmetros de URL para filtros e paginação
+- Implemente navegação programática
+
+### **DESIGN SYSTEM**
+- Use paleta de cores financeira (ouro #FFD700, verde #16A34A, azul #2563EB)
+- Implemente componentes reutilizáveis com tema financeiro
+- Adicione gradientes e shadows para profundidade
+- Use tipografia hierárquica clara
+- Implemente sistema de grid responsivo
+
+### **FUNCIONALIDADES DE DADOS**
+- Integre com APIs reais do backend
+- Implemente cache inteligente com React Query
+- Adicione validação de formulários robusta
+- Crie sistema de feedback para operações
+- Implemente lazy loading para performance
+
+### **INTERATIVIDADE**
+- Adicione tooltips informativos
+- Implemente modais para ações importantes
+- Crie confirmações para ações destrutivas
+- Adicione keyboard shortcuts
+- Implemente drag & drop onde apropriado
+
+---
+
+## 📱 **PÁGINAS ESPECÍFICAS A IMPLEMENTAR**
+
+### **ADMIN ROUTES**
+- `/admin/dashboard` - Dashboard principal com KPIs
+- `/admin/affiliates` - Gestão de afiliados
+- `/admin/affiliates/:id` - Detalhes do afiliado
+- `/admin/betting-houses` - Gestão de casas de apostas
+- `/admin/betting-houses/:id/edit` - Edição de casa de apostas
+- `/admin/reports` - Relatórios gerenciais
+- `/admin/reports/revenue` - Relatório de receita
+- `/admin/reports/performance` - Relatório de performance
+- `/admin/payments` - Gestão de pagamentos
+- `/admin/payments/:id` - Detalhes do pagamento
+- `/admin/settings` - Configurações do sistema
+- `/admin/settings/general` - Configurações gerais
+- `/admin/settings/commission` - Configuração de comissões
+
+### **AFFILIATE ROUTES**
+- `/affiliate/dashboard` - Dashboard do afiliado
+- `/affiliate/links` - Gestão de links
+- `/affiliate/links/create` - Criar novo link
+- `/affiliate/links/:id/analytics` - Analytics do link
+- `/affiliate/campaigns` - Gestão de campanhas
+- `/affiliate/campaigns/create` - Criar campanha
+- `/affiliate/reports` - Relatórios pessoais
+- `/affiliate/reports/commissions` - Relatório de comissões
+- `/affiliate/reports/conversions` - Relatório de conversões
+- `/affiliate/payments` - Pagamentos do afiliado
+- `/affiliate/payments/request` - Solicitar pagamento
+- `/affiliate/profile` - Perfil do afiliado
+- `/affiliate/profile/banking` - Dados bancários
+
+### **SHARED ROUTES**
+- `/login` - Página de login
+- `/register` - Registro de afiliados
+- `/forgot-password` - Recuperação de senha
+- `/reset-password/:token` - Reset de senha
+- `/not-found` - Página 404
+- `/unauthorized` - Página 401
+
+---
+
+## 🎨 **COMPONENTES VISUAIS AVANÇADOS**
+
+### **CARDS FINANCEIROS**
+- Cards com gradientes ouro/verde
+- Indicadores de crescimento com setas
+- Badges de status coloridos
+- Gráficos em miniatura integrados
+
+### **TABELAS INTELIGENTES**
+- Ordenação por colunas
+- Filtros por coluna
+- Paginação avançada
+- Seleção múltipla
+- Ações em lote
+
+### **FORMULÁRIOS AVANÇADOS**
+- Validação em tempo real
+- Autocomplete inteligente
+- Upload de arquivos com preview
+- Campos condicionais
+- Salvamento automático
+
+### **GRÁFICOS E ANALYTICS**
+- Gráficos de linha para tendências
+- Gráficos de pizza para distribuição
+- Gráficos de barras para comparação
+- Heatmaps para performance
+- Mapas para localização
+
+---
+
+## 🔧 **FUNCIONALIDADES TÉCNICAS**
+
+### **PERFORMANCE**
+- Lazy loading de componentes
+- Virtualização de listas longas
+- Debounce em buscas
+- Memoização de componentes
+- Code splitting por rotas
+
+### **SEGURANÇA**
+- Validação de permissões por rota
+- Sanitização de dados
+- Rate limiting no frontend
+- Tokens de autenticação seguros
+- Logs de auditoria
+
+### **ACESSIBILIDADE**
+- Navegação por teclado
+- Screen reader support
+- Contraste adequado
+- Focus management
+- ARIA labels
+
+---
+
+## 🚀 **IMPLEMENTAÇÃO GRADUAL**
+
+### **FASE 1: ESTRUTURA BASE**
+- Configurar sistema de rotas
+- Criar layouts base
+- Implementar autenticação
+- Configurar estado global
+
+### **FASE 2: PÁGINAS CORE**
+- Implementar dashboards
+- Criar formulários básicos
+- Configurar APIs
+- Adicionar navegação
+
+### **FASE 3: FUNCIONALIDADES AVANÇADAS**
+- Implementar filtros e busca
+- Adicionar gráficos
+- Configurar notificações
+- Otimizar performance
+
+### **FASE 4: POLISH E REFINAMENTO**
+- Melhorar UX/UI
+- Adicionar animações
+- Implementar testes
+- Otimizar SEO
+
+---
+
+## 📊 **MÉTRICAS DE SUCESSO**
+
+### **FUNCIONALIDADE**
+- ✅ Todas as rotas funcionando
+- ✅ CRUD completo em todas as entidades
+- ✅ Filtros e busca operacionais
+- ✅ Autenticação e autorização
+- ✅ Responsividade total
+
+### **PERFORMANCE**
+- ✅ Carregamento inicial < 3s
+- ✅ Transições suaves
+- ✅ Sem memory leaks
+- ✅ Bundle size otimizado
+- ✅ Lazy loading implementado
+
+### **UX/UI**
+- ✅ Design consistente
+- ✅ Feedback visual adequado
+- ✅ Navegação intuitiva
+- ✅ Acessibilidade completa
+- ✅ Mobile first
+
+---
+
+## 🎯 **RESULTADO ESPERADO**
+
+Um sistema completo de rotas funcionais com:
+- **Navegação real** entre páginas com URLs únicas
+- **Tema financeiro** profissional e atrativo
+- **Funcionalidades completas** em cada página
+- **Performance otimizada** e responsiva
+- **Experiência premium** para usuários
+- **Pronto para deploy** em qualquer ambiente
+
+---
+
+**🔥 IMPORTANTE**: Este prompt deve resultar em um sistema profissional completo, não apenas páginas básicas. Cada rota deve ter funcionalidade real, design premium, e estar pronta para uso em produção.
