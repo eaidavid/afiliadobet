@@ -1,0 +1,284 @@
+
+# 🚀 MEGA PROMPT - SISTEMA AFILIADOSBET MELHORADO
+
+## 📋 MISSÃO PRINCIPAL
+
+Você deve criar um SISTEMA COMPLETO DE AFILIADOS para casas de apostas, integrando ao código atual com melhorias significativas. Este sistema deve ser **PROFISSIONAL, MODERNO e FUNCIONAL**.
+
+---
+
+## 🎯 OBJETIVOS ESPECÍFICOS
+
+### 1. **CORREÇÃO DE BUGS CRÍTICOS**
+- **Corrigir erro do Button não importado** no AdminDashboard
+- **Resolver todas as referências quebradas** de componentes
+- **Garantir que todas as importações** estejam funcionando corretamente
+
+### 2. **MELHORIAS DE DESIGN E UX**
+- **Implementar tema financeiro/investimentos** com cores douradas, verdes (lucro) e vermelhas (perda)
+- **Adicionar margens adequadas** em todos os containers (principalmente no topo)
+- **Criar gradientes elegantes** para cards e botões
+- **Implementar hover effects** suaves e profissionais
+- **Adicionar indicadores visuais** de lucro/perda
+- **Criar cards com tema monetário** (bordas douradas, backgrounds gradientes)
+
+### 3. **SISTEMA DE ROTEAMENTO COMPLETO**
+- **Criar rotas reais** para todas as páginas (não apenas componentes estáticos)
+- **Implementar navegação real** entre páginas
+- **Rotas a serem criadas:**
+  - `/home` - Dashboard principal
+  - `/bets` - Casas de apostas
+  - `/links` - Meus links
+  - `/payments` - Pagamentos
+  - `/reports` - Relatórios
+  - `/profile` - Perfil
+  - `/admin` - Painel admin
+  - `/admin/affiliates` - Gerenciar afiliados
+  - `/admin/houses` - Gerenciar casas
+  - `/admin/payments` - Gerenciar pagamentos
+
+### 4. **FUNCIONALIDADE ADMIN AVANÇADA**
+- **Criar botão de alternância** para admin navegar como usuário
+- **Implementar "Modo Visualização"** para admin ver interface do afiliado
+- **Adicionar breadcrumbs** indicando o modo atual
+- **Permitir retorno rápido** ao modo admin
+
+### 5. **SISTEMA DE LOGIN APRIMORADO**
+- **Adicionar campo CPF obrigatório** no registro
+- **Implementar validações únicas** para CPF, email e username
+- **Criar sistema de verificação** para evitar duplicatas
+- **Adicionar validação de CPF** (formato brasileiro)
+- **Implementar feedback visual** para campos validados
+
+### 6. **PREPARAÇÃO PARA DEPLOY**
+- **Configurar variáveis de ambiente** adequadas
+- **Otimizar assets** para produção
+- **Configurar builds** para diferentes ambientes
+- **Preparar Docker** se necessário
+- **Configurar proxy reverso** para produção
+
+---
+
+## 📐 ESPECIFICAÇÕES TÉCNICAS
+
+### **TEMA VISUAL FINANCEIRO**
+- **Cores primárias:** Dourado (#FFD700), Verde escuro (#2E8B57), Azul escuro (#1E3A8A)
+- **Gradientes:** Dourado para azul, verde para azul
+- **Indicadores:** Verde para lucro, vermelho para perda, dourado para destaque
+- **Tipografia:** Pesos variados para hierarquia (300, 400, 600, 700)
+- **Sombras:** Sutis com cor dourada para elementos importantes
+
+### **SISTEMA DE ESPAÇAMENTO**
+- **Container principal:** padding 24px, margin-top 16px
+- **Cards:** padding 24px, margin-bottom 16px
+- **Botões:** padding 12px 24px
+- **Inputs:** padding 12px 16px
+- **Sections:** gap 32px entre seções
+
+### **ROTEAMENTO AVANÇADO**
+- **Usar React Router** ou similar para navegação real
+- **Implementar lazy loading** para páginas
+- **Criar guards** para rotas protegidas
+- **Adicionar breadcrumbs** dinâmicos
+- **Implementar histórico** de navegação
+
+### **VALIDAÇÕES DO SISTEMA**
+- **CPF:** Formato brasileiro (XXX.XXX.XXX-XX)
+- **Email:** Formato válido e único
+- **Username:** Alfanumérico, 3-20 caracteres, único
+- **Senha:** Mínimo 8 caracteres, 1 maiúscula, 1 número
+- **Telefone:** Formato brasileiro
+
+### **FUNCIONALIDADES ADMIN**
+- **Toggle Switch** no header para alternar modos
+- **Indicador visual** do modo atual
+- **Breadcrumb** mostrando "Admin > Modo Usuário"
+- **Botão de retorno** sempre visível
+- **Preservar estado** da navegação
+
+---
+
+## 🛠️ INSTRUÇÕES DE IMPLEMENTAÇÃO
+
+### **1. CORREÇÕES IMEDIATAS**
+- Identificar e corrigir todos os imports quebrados
+- Verificar se todos os componentes UI estão disponíveis
+- Corrigir referências de Button, Input, Card, etc.
+- Testar todas as páginas para garantir renderização
+
+### **2. IMPLEMENTAÇÃO DO TEMA FINANCEIRO**
+- Criar paleta de cores no CSS/Tailwind
+- Definir classes utilitárias para tema financeiro
+- Implementar gradientes e sombras personalizadas
+- Criar componentes de card com tema monetário
+- Adicionar animações suaves para transições
+
+### **3. SISTEMA DE ROTEAMENTO**
+- Configurar router principal da aplicação
+- Criar componentes de página individuais
+- Implementar navegação no sidebar/menu
+- Adicionar guards para rotas protegidas
+- Criar página 404 personalizada
+
+### **4. MELHORIAS DE UX**
+- Adicionar loading states em todas as operações
+- Implementar feedback visual para ações
+- Criar tooltips informativos
+- Adicionar animações micro-interações
+- Implementar toast notifications
+
+### **5. FUNCIONALIDADES ADMIN**
+- Criar hook personalizado para modo admin
+- Implementar state management para alternância
+- Criar componente de indicador de modo
+- Adicionar permissões condicionais
+- Implementar logs de ações admin
+
+### **6. SISTEMA DE LOGIN APRIMORADO**
+- Adicionar campo CPF no formulário
+- Implementar validação em tempo real
+- Criar sistema de verificação duplicatas
+- Adicionar feedback visual de validação
+- Implementar recuperação de senha
+
+---
+
+## 🎨 DIRETRIZES DE DESIGN
+
+### **CARDS FINANCEIROS**
+- Fundo gradiente sutil (dark para darker)
+- Borda dourada sutil (1px, opacity 0.3)
+- Sombra com tom dourado
+- Hover effect que eleva o card
+- Indicadores coloridos no topo
+
+### **BOTÕES TEMÁTICOS**
+- Primário: Gradiente dourado para azul
+- Secundário: Cinza escuro com borda
+- Sucesso: Verde escuro
+- Perigo: Vermelho escuro
+- Sombras coloridas matching
+
+### **INPUTS APRIMORADOS**
+- Fundo dark com borda sutil
+- Focus state com cor dourada
+- Placeholders informativos
+- Ícones dentro dos campos
+- Validação visual em tempo real
+
+### **NAVEGAÇÃO PROFISSIONAL**
+- Sidebar com gradiente sutil
+- Itens com hover effects
+- Indicadores de página ativa
+- Breadcrumbs informativos
+- Menu mobile responsivo
+
+---
+
+## 🚀 CRITÉRIOS DE QUALIDADE
+
+### **PERFORMANCE**
+- Tempo de carregamento < 3 segundos
+- Animações fluidas (60fps)
+- Lazy loading implementado
+- Assets otimizados
+- Bundle size otimizado
+
+### **RESPONSIVIDADE**
+- Mobile-first design
+- Breakpoints bem definidos
+- Touch-friendly interfaces
+- Orientação landscape/portrait
+- Testes em dispositivos reais
+
+### **ACESSIBILIDADE**
+- Contraste adequado (WCAG AA)
+- Navegação por teclado
+- Screen reader friendly
+- Focus indicators visíveis
+- Texto alternativo em imagens
+
+### **SEGURANÇA**
+- Validação client e server-side
+- Sanitização de inputs
+- Proteção contra XSS
+- Rate limiting
+- Logs de segurança
+
+---
+
+## 📦 ENTREGÁVEIS ESPERADOS
+
+### **CÓDIGOS COMPLETOS**
+- Todos os componentes funcionais
+- Rotas configuradas e testadas
+- Validações implementadas
+- Tema visual aplicado
+- Funcionalidades admin operacionais
+
+### **DOCUMENTAÇÃO**
+- README atualizado
+- Instruções de deploy
+- Guia de desenvolvimento
+- Documentação de APIs
+- Troubleshooting guide
+
+### **CONFIGURAÇÕES**
+- Variáveis de ambiente
+- Scripts de build
+- Configurações de proxy
+- Docker configs (se aplicável)
+- CI/CD configs
+
+---
+
+## 🔧 COMANDOS E CONFIGURAÇÕES
+
+### **DESENVOLVIMENTO**
+```bash
+npm run dev          # Desenvolvimento
+npm run build        # Build produção
+npm run preview      # Preview build
+npm run lint         # Verificar código
+npm run test         # Executar testes
+```
+
+### **DEPLOY**
+```bash
+npm run build        # Build para produção
+npm run start        # Iniciar servidor
+```
+
+### **VARIÁVEIS DE AMBIENTE**
+```env
+NODE_ENV=production
+DATABASE_URL=postgresql://...
+SESSION_SECRET=your-secret-key
+PORT=5000
+```
+
+---
+
+## 🎯 RESULTADO FINAL ESPERADO
+
+Um sistema completo, profissional e moderno que:
+- **Funciona perfeitamente** sem bugs
+- **Aparência profissional** com tema financeiro
+- **Navegação intuitiva** com rotas reais
+- **Funcionalidades admin** completas
+- **Login seguro** com validações
+- **Pronto para deploy** em qualquer ambiente
+
+**Este sistema deve ser o MELHOR sistema de afiliados para casas de apostas, superando qualquer concorrente em funcionalidade e design.**
+
+---
+
+## 📝 NOTAS IMPORTANTES
+
+- **Manter compatibilidade** com código atual
+- **Não quebrar** funcionalidades existentes
+- **Testar tudo** antes de considerar completo
+- **Documentar mudanças** significativas
+- **Otimizar performance** em cada implementação
+
+**🎯 OBJETIVO: Criar um sistema que impressione pela qualidade e funcionalidade!**

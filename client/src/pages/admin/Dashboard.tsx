@@ -4,12 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Users, TrendingUp, Target, Percent } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-export default function AdminDashboard() {
-  const { data: stats, isLoading: statsLoading } = useQuery({
+interface AdminStats {
+  activeAffiliates: number;
+  totalRevenue: number;
+  totalConversions: number;
+  conversionRate: string;
+}
+
+interface TopAffiliate {
+  id: number;
+  fullName: string;
+  totalCommission: number;
+}
+
+function AdminDashboard() {
+  const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ["/api/admin/stats"],
   });
 
-  const { data: topAffiliates, isLoading: affiliatesLoading } = useQuery({
+  const { data: topAffiliates, isLoading: affiliatesLoading } = useQuery<TopAffiliate[]>({
     queryKey: ["/api/admin/top-affiliates"],
   });
 
@@ -43,84 +56,84 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Metrics Cards */}
+      {/* Financial Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="glass-card">
+        <Card className="glass-card stats-card-neutral">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-muted-foreground">Afiliados Ativos</p>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-sm text-muted-foreground font-medium">Afiliados Ativos</p>
+                <p className="text-3xl font-bold text-foreground">
                   {stats?.activeAffiliates || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-secondary/20 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-secondary" />
+              <div className="w-14 h-14 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                <Users className="w-7 h-7 text-blue-400" />
               </div>
             </div>
             <div className="flex items-center text-sm">
-              <span className="text-secondary">+12%</span>
-              <span className="text-muted-foreground ml-1">vs mês anterior</span>
+              <span className="text-emerald-400 font-semibold">↗ +12%</span>
+              <span className="text-muted-foreground ml-2">vs mês anterior</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card">
+        <Card className="glass-card stats-card-gold">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-muted-foreground">Receita Total</p>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-sm text-muted-foreground font-medium">Receita Total</p>
+                <p className="text-3xl font-bold text-yellow-400">
                   R$ {Number(stats?.totalRevenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-primary" />
+              <div className="w-14 h-14 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                <TrendingUp className="w-7 h-7 text-yellow-400" />
               </div>
             </div>
             <div className="flex items-center text-sm">
-              <span className="text-secondary">+8.5%</span>
-              <span className="text-muted-foreground ml-1">vs mês anterior</span>
+              <span className="text-emerald-400 font-semibold">↗ +8.5%</span>
+              <span className="text-muted-foreground ml-2">vs mês anterior</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card">
+        <Card className="glass-card stats-card-profit">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-muted-foreground">Conversões</p>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-sm text-muted-foreground font-medium">Conversões</p>
+                <p className="text-3xl font-bold text-emerald-400">
                   {stats?.totalConversions || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-accent/20 rounded-lg flex items-center justify-center">
-                <Target className="w-6 h-6 text-accent" />
+              <div className="w-14 h-14 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                <Target className="w-7 h-7 text-emerald-400" />
               </div>
             </div>
             <div className="flex items-center text-sm">
-              <span className="text-secondary">+15.3%</span>
-              <span className="text-muted-foreground ml-1">vs mês anterior</span>
+              <span className="text-emerald-400 font-semibold">↗ +15.3%</span>
+              <span className="text-muted-foreground ml-2">vs mês anterior</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="glass-card">
+        <Card className="glass-card stats-card-neutral">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-muted-foreground">Taxa Conversão</p>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-sm text-muted-foreground font-medium">Taxa Conversão</p>
+                <p className="text-3xl font-bold text-foreground">
                   {stats?.conversionRate || '0.0'}%
                 </p>
               </div>
-              <div className="w-12 h-12 bg-warning/20 rounded-lg flex items-center justify-center">
-                <Percent className="w-6 h-6 text-warning" />
+              <div className="w-14 h-14 bg-amber-500/20 rounded-xl flex items-center justify-center">
+                <Percent className="w-7 h-7 text-amber-400" />
               </div>
             </div>
             <div className="flex items-center text-sm">
-              <span className="text-destructive">-2.1%</span>
-              <span className="text-muted-foreground ml-1">vs mês anterior</span>
+              <span className="text-red-400 font-semibold">↘ -2.1%</span>
+              <span className="text-muted-foreground ml-2">vs mês anterior</span>
             </div>
           </CardContent>
         </Card>
@@ -139,22 +152,45 @@ export default function AdminDashboard() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={mockRevenueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis dataKey="name" stroke="#64748B" />
-                  <YAxis stroke="#64748B" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,215,0,0.1)" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#CBD5E1" 
+                    fontSize={12}
+                    fontWeight={500}
+                  />
+                  <YAxis 
+                    stroke="#CBD5E1" 
+                    fontSize={12}
+                    fontWeight={500}
+                  />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'rgba(30, 41, 59, 0.9)', 
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '8px'
+                      backgroundColor: 'rgba(26, 35, 50, 0.95)', 
+                      border: '1px solid rgba(255,215,0,0.3)',
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
                     }}
+                    labelStyle={{ color: '#FFD700', fontWeight: 600 }}
+                    itemStyle={{ color: '#16A34A', fontWeight: 500 }}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="value" 
-                    stroke="#3B82F6" 
-                    strokeWidth={2}
-                    dot={{ fill: '#3B82F6', strokeWidth: 2 }}
+                    stroke="#FFD700" 
+                    strokeWidth={3}
+                    dot={{ 
+                      fill: '#FFD700', 
+                      strokeWidth: 2, 
+                      r: 5,
+                      stroke: '#B8860B'
+                    }}
+                    activeDot={{ 
+                      r: 7, 
+                      fill: '#FFD700',
+                      stroke: '#16A34A',
+                      strokeWidth: 2
+                    }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -223,8 +259,8 @@ export default function AdminDashboard() {
             <CardTitle className="text-lg font-semibold text-foreground">
               Atividade Recente
             </CardTitle>
-            <Button variant="ghost" className="text-primary hover:text-primary/80 text-sm font-medium">
-              Ver todas
+            <Button variant="ghost" className="text-yellow-400 hover:text-yellow-300 text-sm font-semibold bg-yellow-500/10 hover:bg-yellow-500/20 px-4 py-2 rounded-lg transition-all duration-200">
+              Ver todas →
             </Button>
           </div>
         </CardHeader>
@@ -245,3 +281,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+export default AdminDashboard;

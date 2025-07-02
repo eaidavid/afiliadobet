@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
-import { Zap, Mail, Lock, User, Building2 } from "lucide-react";
+import { Zap, Mail, Lock, User, Building2, CreditCard } from "lucide-react";
 
 export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -17,6 +17,7 @@ export default function Login() {
     email: "",
     password: "",
     fullName: "",
+    cpf: "",
     confirmPassword: ""
   });
   
@@ -91,19 +92,20 @@ export default function Login() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-6">
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-emerald-500 to-blue-500 flex items-center justify-center mb-4">
-              <Zap className="w-8 h-8 text-white" />
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 flex items-center justify-center mb-4 shadow-2xl shadow-yellow-500/20">
+              <Zap className="w-10 h-10 text-gray-900" />
             </div>
           </div>
-          <h1 className="heading-2 text-white mb-2">
+          <h1 className="text-3xl font-bold text-white mb-3 bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
             {isRegistering ? "Criar Conta" : "AfiliadosBet"}
           </h1>
-          <p className="body-regular text-slate-300">
+          <p className="text-lg text-slate-300 font-medium">
             {isRegistering 
               ? "Junte-se ao melhor sistema de afiliados"
-              : "Sistema de gestão para afiliados e casas de apostas"
+              : "Sistema profissional para gestão de afiliados"
             }
           </p>
+          <div className="mt-4 h-1 w-24 mx-auto bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full"></div>
         </div>
 
         {/* Login Form */}
@@ -148,20 +150,20 @@ export default function Login() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full py-3 text-base font-semibold"
+              className="w-full py-3 text-base font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-300 hover:to-yellow-500 text-gray-900 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-yellow-500/25 transform hover:scale-[1.02]"
             >
-              {isLoading ? "Entrando..." : "Entrar"}
+              {isLoading ? "Entrando..." : "🚀 Entrar no Sistema"}
             </Button>
 
-            <div className="text-center pt-4">
+            <div className="text-center pt-6">
               <p className="text-slate-400 text-sm">
                 Não tem uma conta?{" "}
                 <button
                   type="button"
                   onClick={() => setIsRegistering(true)}
-                  className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                  className="text-yellow-400 hover:text-yellow-300 font-semibold transition-colors hover:underline"
                 >
-                  Criar conta
+                  Criar conta gratuita
                 </button>
               </p>
             </div>
@@ -200,6 +202,24 @@ export default function Login() {
                   onChange={(e) => setRegisterData(prev => ({ ...prev, username: e.target.value }))}
                   className="input-enhanced pl-12"
                   placeholder="seuusuario"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cpf" className="text-slate-200 font-medium">
+                CPF
+              </Label>
+              <div className="relative">
+                <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Input
+                  id="cpf"
+                  type="text"
+                  value={registerData.cpf}
+                  onChange={(e) => setRegisterData(prev => ({ ...prev, cpf: e.target.value }))}
+                  className="input-enhanced pl-12"
+                  placeholder="000.000.000-00"
                   required
                 />
               </div>
@@ -262,18 +282,18 @@ export default function Login() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full py-3 text-base font-semibold"
+              className="w-full py-3 text-base font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-300 hover:to-yellow-500 text-gray-900 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-yellow-500/25 transform hover:scale-[1.02]"
             >
-              {isLoading ? "Criando conta..." : "Criar Conta"}
+              {isLoading ? "Criando conta..." : "💰 Criar Conta Gratuita"}
             </Button>
 
-            <div className="text-center pt-4">
+            <div className="text-center pt-6">
               <p className="text-slate-400 text-sm">
                 Já tem uma conta?{" "}
                 <button
                   type="button"
                   onClick={() => setIsRegistering(false)}
-                  className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                  className="text-yellow-400 hover:text-yellow-300 font-semibold transition-colors hover:underline"
                 >
                   Fazer login
                 </button>
@@ -283,14 +303,19 @@ export default function Login() {
         )}
 
         {/* Demo Credentials */}
-        <div className="mt-8 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-          <p className="text-slate-300 text-sm font-medium mb-2">Credenciais de Teste:</p>
-          <div className="space-y-1 text-xs text-slate-400">
-            <div>
-              <strong className="text-emerald-400">Admin:</strong> admin@sistema.com / admin123
+        <div className="mt-8 p-5 bg-gradient-to-r from-slate-800/60 to-slate-700/60 rounded-xl border border-yellow-500/20 backdrop-blur-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+            <p className="text-yellow-400 text-sm font-semibold">Credenciais de Teste</p>
+          </div>
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+              <span className="text-slate-300">Admin:</span>
+              <span className="text-yellow-400 font-mono">admin@sistema.com / admin123</span>
             </div>
-            <div>
-              <strong className="text-blue-400">Afiliado:</strong> afiliado@teste.com / user123
+            <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+              <span className="text-slate-300">Afiliado:</span>
+              <span className="text-emerald-400 font-mono">afiliado@teste.com / user123</span>
             </div>
           </div>
         </div>

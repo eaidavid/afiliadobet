@@ -6,13 +6,20 @@
 
 @layer base {
   :root {
-    /* Core Design System Colors */
-    --color-primary: #10b981;
-    --color-secondary: #3b82f6;
-    --color-background: #020617;
-    --color-surface: #1e293b;
+    /* Core Design System Colors - Financial Theme */
+    --color-primary: #FFD700;    /* Gold */
+    --color-secondary: #2E8B57;  /* Dark Green */
+    --color-accent: #1E3A8A;     /* Dark Blue */
+    --color-background: #0F1419; /* Very Dark Blue */
+    --color-surface: #1A2332;    /* Dark Blue Gray */
     --color-text-primary: #ffffff;
     --color-text-secondary: #cbd5e1;
+    
+    /* Financial Colors */
+    --color-profit: #16a34a;     /* Green for profit */
+    --color-loss: #dc2626;       /* Red for loss */
+    --color-gold: #FFD700;       /* Gold highlight */
+    --color-gold-dark: #B8860B;  /* Darker gold */
 
     /* Emerald Scale */
     --emerald-50: #ecfdf5;
@@ -95,36 +102,36 @@
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
     --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
 
-    /* Shadcn/UI Compatible Variables */
-    --background: 240 10% 3.9%;
+    /* Shadcn/UI Compatible Variables - Financial Theme */
+    --background: 215 25% 8%;
     --foreground: 0 0% 98%;
     
-    --card: 240 3.7% 15.9%;
+    --card: 215 20% 12%;
     --card-foreground: 0 0% 98%;
     
-    --popover: 240 3.7% 15.9%;
+    --popover: 215 20% 12%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 51 100% 50%;  /* Gold */
+    --primary-foreground: 215 25% 8%;
     
-    --secondary: 240 5.9% 10%;
+    --secondary: 146 38% 30%; /* Dark Green */
     --secondary-foreground: 0 0% 98%;
     
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 215 20% 12%;
+    --muted-foreground: 215 10% 60%;
     
-    --accent: 217 91% 60%;
+    --accent: 220 70% 35%;    /* Dark Blue */
     --accent-foreground: 0 0% 98%;
     
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 75% 45%; /* Red for losses */
     --destructive-foreground: 0 0% 98%;
     
-    --warning: 38 92% 50%;
+    --warning: 43 96% 60%;    /* Amber */
     
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 160 84% 39%;
+    --border: 215 15% 20%;
+    --input: 215 15% 20%;
+    --ring: 51 100% 50%;
     
     --radius: 0.75rem;
     
@@ -159,20 +166,32 @@
 }
 
 @layer components {
-  /* Modern Glass Effect Cards */
+  /* Financial Theme Cards */
   .glass-card {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.6) 100%);
+    background: linear-gradient(135deg, rgba(26, 35, 50, 0.95) 0%, rgba(31, 41, 55, 0.8) 100%);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.2);
     border-radius: var(--radius-xl);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #FFD700 0%, #2E8B57 50%, #1E3A8A 100%);
   }
 
   .glass-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-    border-color: rgba(16, 185, 129, 0.2);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.4);
   }
 
   /* Stats Cards with Gradient */
@@ -200,22 +219,83 @@
     box-shadow: 0 12px 24px rgba(16, 185, 129, 0.15);
   }
 
-  /* Enhanced Button Styles */
+  /* Financial Theme Stats Cards */
+  .stats-card-profit {
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.1) 0%, rgba(21, 128, 61, 0.05) 100%);
+    border: 1px solid rgba(22, 163, 74, 0.3);
+    border-left: 4px solid #16a34a;
+  }
+
+  .stats-card-loss {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(185, 28, 28, 0.05) 100%);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-left: 4px solid #dc2626;
+  }
+
+  .stats-card-gold {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(184, 134, 11, 0.05) 100%);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-left: 4px solid #FFD700;
+  }
+
+  .stats-card-neutral {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.1) 0%, rgba(29, 78, 216, 0.05) 100%);
+    border: 1px solid rgba(30, 58, 138, 0.3);
+    border-left: 4px solid #1E3A8A;
+  }
+
+  /* Enhanced Financial Button Styles */
   .btn-primary {
-    background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+    color: #0F1419;
+    font-weight: 700;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.4);
+    background: linear-gradient(135deg, #FFE55C 0%, #DAA520 100%);
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
     color: white;
     font-weight: 600;
     padding: 12px 24px;
     border-radius: 12px;
     border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.3);
   }
 
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+  .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(22, 163, 74, 0.4);
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+  }
+
+  .btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
   }
 
   .btn-secondary {
