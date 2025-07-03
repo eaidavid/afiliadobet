@@ -148,6 +148,12 @@ export const payments = pgTable("payments", {
   rejectionReason: text("rejection_reason"),
   proofDocument: text("proof_document"),
   auditLog: text("audit_log"),
+  // Campos adicionais para workflow completo
+  notes: text("notes"),
+  proofUrl: text("proof_url"),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -31,6 +31,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { BettingHouseForm } from '@/components/BettingHouseForm';
 
 export default function BettingHouses({ editId }: { editId?: string }) {
   const { toast } = useToast();
@@ -38,6 +39,7 @@ export default function BettingHouses({ editId }: { editId?: string }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editHouse, setEditHouse] = useState<any>(null);
 
   // Query para casas de apostas
   const { data: bettingHouses, isLoading, refetch } = useQuery({
@@ -589,12 +591,36 @@ function BettingHouseEditView({ house }: { house: any }) {
         </Button>
       </div>
 
-      {/* Formulário de edição será implementado aqui */}
-      <Card className="bg-slate-800/50 border-slate-700/50">
-        <CardContent className="p-6">
-          <p className="text-slate-400">Formulário de edição em desenvolvimento...</p>
-        </CardContent>
-      </Card>
+      {/* Usar o novo formulário completo */}
+      <BettingHouseForm 
+        open={true}
+        onOpenChange={() => {}}
+        editData={houseDetails}
+        mode="edit"
+      />
+    </div>
+  );
+
+  // Renderizar formulários modais
+  return (
+    <div className="space-y-6">
+      {/* ... resto do componente ... */}
+      
+      {/* Novo formulário modal */}
+      <BettingHouseForm 
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        mode="create"
+      />
+      
+      {editHouse && (
+        <BettingHouseForm 
+          open={!!editHouse}
+          onOpenChange={(open) => !open && setEditHouse(null)}
+          editData={editHouse}
+          mode="edit"
+        />
+      )}
     </div>
   );
 }

@@ -98,14 +98,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword
       });
 
-      // Create affiliate profile with registration data
+      // Create affiliate profile with complete registration data
       await storage.createAffiliateProfile({
         userId: user.id,
         points: 0,
         level: 'Novato',
         totalCommission: '0',
         availableBalance: '0',
-        preferredPaymentMethod: 'PIX'
+        preferredPaymentMethod: 'PIX',
+        // Copy user data to profile
+        cpf: userData.cpf || null,
+        phone: userData.phone || null,
+        bankName: userData.bankName || null,
+        agency: userData.agency || null,
+        account: userData.account || null,
+        accountType: userData.accountType || 'checking'
       });
 
       res.status(201).json({ message: "Conta criada com sucesso" });
@@ -138,8 +145,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/affiliates", isAuthenticated, isAdmin, async (req, res) => {
     try {
+      const { search, status, dateRange, sortBy, sortOrder } = req.query;
       const affiliates = await storage.getAllAffiliatesWithStats();
-      res.json(affiliates);
+      
+      // Apply filters
+      let filtered = affiliates;
+      
+      if (search && typeof search === 'string') {
+        const searchLower = search.toLowerCase();
+        filtered = filtered.filter(affiliate => 
+          affiliate.fullName?.toLowerCase().includes(searchLower) ||
+          affiliate.email?.toLowerCase().includes(searchLower) ||
+          affiliate.username?.toLowerCase().includes(searchLower)
+        );
+      }
+      
+      if (status && status !== 'all') {
+        filtered = filtered.filter(affiliate => {
+          if (status === 'active') return affiliate.isActive;
+          if (status === 'inactive') return !affiliate.isActive;
+          return true;
+        });
+      }
+      
+      // Apply sorting
+      if (sortBy && typeof sortBy === 'string') {
+        filtered.sort((a, b) => {
+          let aVal = a[sortBy as keyof typeof a];
+          let bVal = b[sortBy as keyof typeof b];
+          
+          if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+          if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+          
+          if (aVal < bVal) return sortOrder === 'desc' ? 1 : -1;
+          if (aVal > bVal) return sortOrder === 'desc' ? -1 : 1;
+          return 0;
+        });
+      }
+      
+      res.json(filtered);
     } catch (error) {
       console.error("Error fetching affiliates:", error);
       res.status(500).json({ message: "Erro ao buscar afiliados" });
@@ -167,6 +211,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching affiliate details:", error);
       res.status(500).json({ message: "Erro ao buscar detalhes do afiliado" });
+    }
+  });
+
+  // Atualizar status do afiliado
+  app.patch("/api/admin/affiliates/:id/status", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const affiliateId = parseInt(req.params.id);
+      const { isActive } = req.body;
+      
+      const updatedUser = await storage.updateUser(affiliateId, { isActive });
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Afiliado não encontrado" });
+      }
+      
+      res.json({ message: isActive ? "Afiliado ativado com sucesso" : "Afiliado desativado com sucesso", user: updatedUser });
+    } catch (error) {
+      console.error("Error updating affiliate status:", error);
+      res.status(500).json({ message: "Erro ao atualizar status do afiliado" });
+    }
+  });
+
+  // Atualizar perfil do afiliado
+  app.patch("/api/admin/affiliates/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const affiliateId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      // Update user basic info
+      if (updates.fullName || updates.email || updates.username) {
+        await storage.updateUser(affiliateId, {
+          fullName: updates.fullName,
+          email: updates.email,
+          username: updates.username
+        });
+      }
+      
+      // Update affiliate profile
+      if (updates.cpf || updates.phone || updates.bankName || updates.agency || updates.account) {
+        await storage.updateAffiliateProfile(affiliateId, {
+          cpf: updates.cpf,
+          phone: updates.phone,
+          bankName: updates.bankName,
+          agency: updates.agency,
+          account: updates.account,
+          accountType: updates.accountType
+        });
+      }
+      
+      res.json({ message: "Perfil do afiliado atualizado com sucesso" });
+    } catch (error) {
+      console.error("Error updating affiliate profile:", error);
+      res.status(500).json({ message: "Erro ao atualizar perfil do afiliado" });
     }
   });
 
@@ -496,7 +592,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Payment routes
+  // Admin Payment routes
+  app.get("/api/admin/payments", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { status, search, dateRange } = req.query;
+      let payments = await storage.getPayments();
+      
+      // Apply filters
+      if (status && status !== 'all') {
+        payments = payments.filter(payment => payment.status === status);
+      }
+      
+      if (search && typeof search === 'string') {
+        const searchLower = search.toLowerCase();
+        payments = payments.filter(payment => 
+          payment.affiliate?.fullName?.toLowerCase().includes(searchLower) ||
+          payment.affiliate?.email?.toLowerCase().includes(searchLower) ||
+          payment.id?.toString().includes(searchLower)
+        );
+      }
+      
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching admin payments:", error);
+      res.status(500).json({ message: "Erro ao buscar pagamentos" });
+    }
+  });
+
+  app.get("/api/admin/payments/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const payments = await storage.getPayments();
+      const payment = payments.find(p => p.id === paymentId);
+      
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+      
+      res.json(payment);
+    } catch (error) {
+      console.error("Error fetching payment details:", error);
+      res.status(500).json({ message: "Erro ao buscar detalhes do pagamento" });
+    }
+  });
+
+  app.post("/api/admin/payments/:id/approve", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const { notes, proofUrl } = req.body;
+      
+      const payment = await storage.updatePayment(paymentId, {
+        status: 'approved',
+        notes,
+        proofUrl,
+        approvedAt: new Date(),
+        processedBy: (req.user as any).id
+      });
+      
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+      
+      res.json({ message: "Pagamento aprovado com sucesso", payment });
+    } catch (error) {
+      console.error("Error approving payment:", error);
+      res.status(500).json({ message: "Erro ao aprovar pagamento" });
+    }
+  });
+
+  app.post("/api/admin/payments/:id/reject", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const { notes } = req.body;
+      
+      const payment = await storage.updatePayment(paymentId, {
+        status: 'rejected',
+        notes,
+        rejectedAt: new Date(),
+        processedBy: (req.user as any).id
+      });
+      
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+      
+      res.json({ message: "Pagamento rejeitado", payment });
+    } catch (error) {
+      console.error("Error rejecting payment:", error);
+      res.status(500).json({ message: "Erro ao rejeitar pagamento" });
+    }
+  });
+
+  // Regular payment routes for affiliates
   app.get("/api/payments", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
@@ -924,6 +1111,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error testing postback:", error);
       res.status(500).json({ success: false, message: "Erro no teste" });
+    }
+  });
+
+  // Rota para gerar links de afiliados usando username
+  app.post("/api/affiliate/generate-link", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { houseId } = req.body;
+      
+      const house = await storage.getBettingHouse(houseId);
+      if (!house) {
+        return res.status(404).json({ message: "Casa de apostas não encontrada" });
+      }
+
+      // Gerar link usando username como affid
+      const linkCode = `${user.username}_${house.name.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
+      const affiliateLink = `${house.websiteUrl}?affid=${user.username}&subid=${linkCode}`;
+      
+      // Verificar se já existe link para esta casa
+      const existingLinks = await storage.getAffiliateLinks(user.id);
+      const existingLink = existingLinks.find(link => link.houseId === houseId);
+      
+      if (existingLink) {
+        return res.json({
+          link: existingLink.fullUrl,
+          linkCode: existingLink.linkCode,
+          house: house.name,
+          username: user.username,
+          postbackUrls: {
+            registration: `${req.protocol}://${req.get('host')}/api/postback/${house.postbackToken}/registration`,
+            deposit: `${req.protocol}://${req.get('host')}/api/postback/${house.postbackToken}/deposit`
+          }
+        });
+      }
+
+      // Criar novo link
+      const newLink = await storage.createAffiliateLink({
+        userId: user.id,
+        houseId,
+        linkCode,
+        fullUrl: affiliateLink,
+        clickCount: 0,
+        conversionCount: 0,
+        commissionEarned: '0'
+      });
+
+      res.json({
+        link: affiliateLink,
+        linkCode,
+        house: house.name,
+        username: user.username,
+        postbackUrls: {
+          registration: `${req.protocol}://${req.get('host')}/api/postback/${house.postbackToken}/registration`,
+          deposit: `${req.protocol}://${req.get('host')}/api/postback/${house.postbackToken}/deposit`
+        }
+      });
+    } catch (error) {
+      console.error("Error generating affiliate link:", error);
+      res.status(500).json({ message: "Erro ao gerar link de afiliado" });
+    }
+  });
+
+  // Rota para listar links do afiliado
+  app.get("/api/affiliate/links", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const links = await storage.getAffiliateLinks(user.id);
+      
+      // Enriquecer com dados das casas de apostas
+      const enrichedLinks = await Promise.all(links.map(async (link) => {
+        const house = await storage.getBettingHouse(link.houseId);
+        return {
+          ...link,
+          house: house ? {
+            name: house.name,
+            logoUrl: house.logoUrl,
+            category: house.category
+          } : null
+        };
+      }));
+      
+      res.json(enrichedLinks);
+    } catch (error) {
+      console.error("Error fetching affiliate links:", error);
+      res.status(500).json({ message: "Erro ao buscar links" });
     }
   });
 
