@@ -127,7 +127,7 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
             <h1 className="text-3xl font-bold">Casas de Apostas</h1>
             <p className="text-muted-foreground">Gerencie as casas de apostas e suas configurações</p>
           </div>
-          <Button onClick={() => setShowCreateModal(true)} className="bg-primary hover:bg-primary/90">
+          <Button onClick={() => setShowCreateModal(true)} className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold">
             <Plus className="w-4 h-4 mr-2" />
             Nova Casa
           </Button>
@@ -135,53 +135,53 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
 
         {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
+          <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border-slate-700/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Casas</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-slate-200">Total de Casas</CardTitle>
+              <Building2 className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalHouses || houses.length}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-yellow-500">{(stats as any)?.totalHouses || (houses as any[])?.length || 0}</div>
+              <p className="text-xs text-emerald-400">
                 +2 desde o mês passado
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-emerald-900/20 to-emerald-800/20 border-emerald-700/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Casas Ativas</CardTitle>
-              <Zap className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-slate-200">Casas Ativas</CardTitle>
+              <Zap className="h-4 w-4 text-emerald-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.activeHouses || houses.filter((h: any) => h.isActive).length}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-emerald-400">{(stats as any)?.activeHouses || (houses as any[])?.filter((h: any) => h.isActive)?.length || 0}</div>
+              <p className="text-xs text-emerald-300">
                 Operando normalmente
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-yellow-900/20 to-yellow-800/20 border-yellow-700/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-slate-200">Receita Total</CardTitle>
+              <DollarSign className="h-4 w-4 text-yellow-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R$ {stats.totalRevenue || '125,430'}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-yellow-400">R$ {(stats as any)?.totalRevenue || '125,430'}</div>
+              <p className="text-xs text-emerald-400">
                 +20.1% desde o mês passado
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-blue-900/20 to-blue-800/20 border-blue-700/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-slate-200">Taxa de Conversão</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.averageConversionRate || '3.2'}%</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold text-blue-400">{(stats as any)?.averageConversionRate || '3.2'}%</div>
+              <p className="text-xs text-emerald-400">
                 +0.4% desde o mês passado
               </p>
             </CardContent>
@@ -200,15 +200,19 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
             />
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {categories.map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
                 onClick={() => setSelectedCategory(category)}
                 size="sm"
+                className={selectedCategory === category 
+                  ? "bg-yellow-500 hover:bg-yellow-600 text-black font-semibold" 
+                  : "border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-yellow-400"
+                }
               >
-                {category === 'all' ? 'Todas' : category}
+                {category === 'all' ? 'Todas' : category.charAt(0).toUpperCase() + category.slice(1)}
               </Button>
             ))}
           </div>
@@ -222,7 +226,7 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredHouses.map((house: any) => (
-              <Card key={house.id} className="group hover:shadow-lg transition-shadow">
+              <Card key={house.id} className="group hover:shadow-xl hover:shadow-yellow-500/10 transition-all duration-300 bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50 hover:border-yellow-500/30">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -233,13 +237,17 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
                           className="w-10 h-10 rounded object-contain bg-white p-1"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded bg-slate-700 flex items-center justify-center">
-                          <Building2 className="w-5 h-5" />
+                        <div className="w-10 h-10 rounded bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 flex items-center justify-center">
+                          <Building2 className="w-5 h-5 text-yellow-400" />
                         </div>
                       )}
                       <div>
-                        <CardTitle className="text-lg">{house.name}</CardTitle>
-                        <Badge variant={house.category === 'sports' ? 'default' : 'secondary'}>
+                        <CardTitle className="text-lg text-slate-100">{house.name}</CardTitle>
+                        <Badge variant={house.category === 'sports' ? 'default' : 'secondary'} 
+                               className={house.category === 'sports' 
+                                 ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' 
+                                 : 'bg-slate-700/50 text-slate-300 border-slate-600/50'
+                               }>
                           {house.category}
                         </Badge>
                       </div>
@@ -276,36 +284,36 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
                 </CardHeader>
                 
                 <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground line-clamp-2">
+                  <p className="text-sm text-slate-300 line-clamp-2">
                     {house.description}
                   </p>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">CPA Base</p>
-                      <p className="font-semibold text-green-400">R$ {house.baseCpaCommission || '0'}</p>
+                    <div className="bg-emerald-900/20 p-3 rounded border border-emerald-700/30">
+                      <p className="text-slate-400 text-xs">CPA Base</p>
+                      <p className="font-semibold text-emerald-400 text-lg">R$ {house.baseCpaCommission || '0'}</p>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">RevShare</p>
-                      <p className="font-semibold text-blue-400">{house.baseRevSharePercent || '0'}%</p>
+                    <div className="bg-blue-900/20 p-3 rounded border border-blue-700/30">
+                      <p className="text-slate-400 text-xs">RevShare</p>
+                      <p className="font-semibold text-blue-400 text-lg">{house.baseRevSharePercent || '0'}%</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-wrap">
                       {house.isActive ? (
-                        <Badge variant="default" className="bg-green-600">
+                        <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30">
                           <Zap className="w-3 h-3 mr-1" />
                           Ativa
                         </Badge>
                       ) : (
-                        <Badge variant="secondary">
+                        <Badge variant="secondary" className="bg-slate-700/50 text-slate-400 border-slate-600/50">
                           Inativa
                         </Badge>
                       )}
                       
                       {house.postbackToken && (
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
                           <Shield className="w-3 h-3 mr-1" />
                           Postback
                         </Badge>
@@ -316,6 +324,7 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
                       variant="outline"
                       size="sm"
                       onClick={() => setEditHouse(house)}
+                      className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 hover:text-yellow-300"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -328,12 +337,17 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
 
         {filteredHouses.length === 0 && !isLoading && (
           <div className="text-center py-12">
-            <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhuma casa encontrada</h3>
-            <p className="text-muted-foreground mb-4">
+            <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 border border-yellow-500/20 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
+              <Building2 className="w-12 h-12 text-yellow-400" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2 text-slate-200">Nenhuma casa encontrada</h3>
+            <p className="text-slate-400 mb-4">
               {searchTerm ? 'Tente ajustar os filtros de busca' : 'Comece criando sua primeira casa de apostas'}
             </p>
-            <Button onClick={() => setShowCreateModal(true)}>
+            <Button 
+              onClick={() => setShowCreateModal(true)}
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Criar Casa de Apostas
             </Button>
@@ -358,19 +372,21 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
 
         {/* Dialog de Confirmação de Exclusão */}
         <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, house: null })}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-slate-900 border-slate-700">
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja deletar a casa "{deleteDialog.house?.name}"? 
+              <AlertDialogTitle className="text-slate-200">Confirmar exclusão</AlertDialogTitle>
+              <AlertDialogDescription className="text-slate-400">
+                Tem certeza que deseja deletar a casa "<span className="text-yellow-400 font-semibold">{deleteDialog.house?.name}</span>"? 
                 Esta ação não pode ser desfeita e removerá todos os dados relacionados.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogCancel className="border-slate-600 text-slate-300 hover:bg-slate-800">
+                Cancelar
+              </AlertDialogCancel>
               <AlertDialogAction 
                 onClick={() => deleteMutation.mutate(deleteDialog.house?.id)}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Deletar Casa
               </AlertDialogAction>
