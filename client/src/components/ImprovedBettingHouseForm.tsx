@@ -233,25 +233,25 @@ export function ImprovedBettingHouseForm({ open, onOpenChange, editData, mode = 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto bg-slate-900 border-slate-700">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Building2 className="w-5 h-5" />
+          <DialogTitle className="flex items-center gap-2 text-slate-200">
+            <Building2 className="w-5 h-5 text-yellow-500" />
             {mode === 'edit' ? 'Editar Casa de Apostas' : 'Nova Casa de Apostas'}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Tabs Navigation */}
-          <div className="flex space-x-1 bg-slate-900/50 p-1 rounded-lg overflow-x-auto">
+          <div className="flex space-x-1 bg-slate-800/50 p-1 rounded-lg overflow-x-auto border border-slate-700/50">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold'
+                    : 'text-slate-400 hover:text-yellow-400 hover:bg-slate-800/50'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -263,10 +263,10 @@ export function ImprovedBettingHouseForm({ open, onOpenChange, editData, mode = 
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Tab Content */}
             {activeTab === 'basic' && (
-              <Card>
+              <Card className="bg-slate-800/50 border-slate-700/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-2 text-slate-200">
+                    <Building2 className="w-5 h-5 text-yellow-500" />
                     Informações Básicas
                   </CardTitle>
                 </CardHeader>
@@ -362,10 +362,10 @@ export function ImprovedBettingHouseForm({ open, onOpenChange, editData, mode = 
             )}
 
             {activeTab === 'financial' && (
-              <Card>
+              <Card className="bg-slate-800/50 border-slate-700/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-2 text-slate-200">
+                    <DollarSign className="w-5 h-5 text-yellow-500" />
                     Configurações Financeiras
                   </CardTitle>
                 </CardHeader>
@@ -481,10 +481,10 @@ export function ImprovedBettingHouseForm({ open, onOpenChange, editData, mode = 
             )}
 
             {activeTab === 'tracking' && (
-              <Card>
+              <Card className="bg-slate-800/50 border-slate-700/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-2 text-slate-200">
+                    <Zap className="w-5 h-5 text-yellow-500" />
                     Configurações de Tracking
                   </CardTitle>
                 </CardHeader>
@@ -622,10 +622,10 @@ export function ImprovedBettingHouseForm({ open, onOpenChange, editData, mode = 
             )}
 
             {activeTab === 'api' && (
-              <Card>
+              <Card className="bg-slate-800/50 border-slate-700/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-2 text-slate-200">
+                    <Settings className="w-5 h-5 text-yellow-500" />
                     Integração por API
                   </CardTitle>
                 </CardHeader>
@@ -724,10 +724,10 @@ export function ImprovedBettingHouseForm({ open, onOpenChange, editData, mode = 
             )}
 
             {activeTab === 'advanced' && (
-              <Card>
+              <Card className="bg-slate-800/50 border-slate-700/50">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-2 text-slate-200">
+                    <Shield className="w-5 h-5 text-yellow-500" />
                     Configurações Avançadas
                   </CardTitle>
                 </CardHeader>
@@ -827,23 +827,32 @@ export function ImprovedBettingHouseForm({ open, onOpenChange, editData, mode = 
             )}
 
             {/* Footer com ações */}
-            <div className="flex justify-between items-center pt-4 border-t">
+            <div className="flex justify-between items-center pt-4 border-t border-slate-700/50">
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     {...form.register('isActive')}
-                    className="rounded"
+                    className="rounded border-slate-600 text-yellow-500 focus:ring-yellow-500"
                   />
-                  <span className="text-sm">Casa ativa</span>
+                  <span className="text-sm text-slate-300">Casa ativa</span>
                 </label>
               </div>
 
               <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => onOpenChange(false)}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-yellow-400"
+                >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={createMutation.isPending}>
+                <Button 
+                  type="submit" 
+                  disabled={createMutation.isPending}
+                  className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold"
+                >
                   {createMutation.isPending ? 'Salvando...' : mode === 'edit' ? 'Atualizar Casa' : 'Criar Casa'}
                 </Button>
               </div>

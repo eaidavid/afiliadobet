@@ -122,12 +122,12 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Casas de Apostas</h1>
-            <p className="text-muted-foreground">Gerencie as casas de apostas e suas configurações</p>
+            <h1 className="text-3xl font-bold text-slate-100">Casas de Apostas</h1>
+            <p className="text-slate-400">Gerencie as casas de apostas e suas configurações</p>
           </div>
-          <Button onClick={() => setShowCreateModal(true)} className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold">
+          <Button onClick={() => setShowCreateModal(true)} className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold whitespace-nowrap">
             <Plus className="w-4 h-4 mr-2" />
             Nova Casa
           </Button>
@@ -189,18 +189,18 @@ export default function BettingHousesFixed({ editId }: { editId?: string }) {
         </div>
 
         {/* Filtros */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+          <div className="relative w-full lg:flex-1 lg:max-w-md">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
             <Input
               placeholder="Buscar casas de apostas..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
+              className="pl-9 bg-slate-800/50 border-slate-700/50 text-slate-200 placeholder:text-slate-400"
             />
           </div>
           
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap w-full lg:w-auto lg:justify-end">
             {categories.map((category) => (
               <Button
                 key={category}
