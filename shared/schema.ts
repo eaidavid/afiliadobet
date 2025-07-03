@@ -27,6 +27,19 @@ export const affiliateProfiles = pgTable("affiliate_profiles", {
   bankAccount: text("bank_account"),
   phone: varchar("phone", { length: 20 }),
   address: text("address"),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 2 }),
+  zipCode: varchar("zip_code", { length: 10 }),
+  cpf: varchar("cpf", { length: 14 }),
+  birthDate: varchar("birth_date", { length: 10 }),
+  profilePhoto: text("profile_photo"),
+  bio: text("bio"),
+  preferredPaymentMethod: varchar("preferred_payment_method", { length: 50 }).default("PIX"),
+  bankName: varchar("bank_name", { length: 100 }),
+  agency: varchar("agency", { length: 20 }),
+  account: varchar("account", { length: 20 }),
+  accountType: varchar("account_type", { length: 20 }).default("checking"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Betting houses
@@ -40,6 +53,16 @@ export const bettingHouses = pgTable("betting_houses", {
   baseRevSharePercent: decimal("base_rev_share_percent", { precision: 5, scale: 2 }).notNull(),
   cookieDuration: integer("cookie_duration").default(90).notNull(), // days
   isActive: boolean("is_active").default(true).notNull(),
+  category: varchar("category", { length: 100 }).default("sports").notNull(),
+  commissionType: varchar("commission_type", { length: 20 }).default("CPA").notNull().$type<"CPA" | "RevShare" | "Hybrid">(),
+  // Configurações de postback
+  postbackUrl: text("postback_url"),
+  postbackToken: varchar("postback_token", { length: 255 }),
+  apiUrl: text("api_url"),
+  apiKey: varchar("api_key", { length: 255 }),
+  authMethod: varchar("auth_method", { length: 20 }).default("Bearer"),
+  syncInterval: integer("sync_interval").default(60), // minutes
+  integrationMethod: varchar("integration_method", { length: 20 }).default("postback").$type<"postback" | "api">(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

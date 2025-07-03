@@ -178,20 +178,78 @@ export default function Profile({ section = 'personal' }: ProfileProps) {
 // Componente para informações pessoais
 function PersonalInfoSection({ profile }: { profile: any }) {
   const [formData, setFormData] = useState({
-    fullName: profile?.fullName || 'João Silva Afiliado',
-    email: profile?.email || 'joao@email.com',
-    phone: profile?.phone || '(11) 99999-9999',
-    cpf: profile?.cpf || '123.456.789-00',
-    birthDate: profile?.birthDate || '1990-01-01',
-    address: profile?.address || 'Rua das Flores, 123',
-    city: profile?.city || 'São Paulo',
-    state: profile?.state || 'SP',
-    zipCode: profile?.zipCode || '01234-567',
-    bio: profile?.bio || ''
+    fullName: profile?.fullName || '',
+    email: profile?.email || '',
+    phone: profile?.phone || '',
+    cpf: profile?.cpf || '',
+    birthDate: profile?.birthDate || '',
+    address: profile?.address || '',
+    city: profile?.city || '',
+    state: profile?.state || '',
+    zipCode: profile?.zipCode || '',
+    bio: profile?.bio || '',
+    profilePhoto: profile?.profilePhoto || ''
   });
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, profilePhoto: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Foto de perfil */}
+      <Card className="bg-slate-800/50 border-slate-700/50 lg:col-span-2">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center">
+            <User className="w-5 h-5 mr-2" />
+            Foto do Perfil
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center space-x-6">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="w-32 h-32 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center overflow-hidden">
+              {formData.profilePhoto ? (
+                <img 
+                  src={formData.profilePhoto} 
+                  alt="Foto do perfil" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-16 h-16 text-gray-900" />
+              )}
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={() => document.getElementById('photo-upload')?.click()}>
+                <Edit className="w-4 h-4 mr-2" />
+                Alterar Foto
+              </Button>
+              {formData.profilePhoto && (
+                <Button variant="outline" onClick={() => setFormData(prev => ({ ...prev, profilePhoto: '' }))}>
+                  Remover
+                </Button>
+              )}
+            </div>
+            <input
+              id="photo-upload"
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
+            <p className="text-xs text-slate-400 text-center">
+              Formatos aceitos: JPG, PNG. Tamanho máximo: 2MB
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Informações básicas */}
       <Card className="bg-slate-800/50 border-slate-700/50">
         <CardHeader>

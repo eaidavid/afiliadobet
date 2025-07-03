@@ -13,6 +13,7 @@ import NotFound from "@/pages/not-found";
 // Lazy load das páginas admin
 const AdminDashboard = lazy(() => import("@/pages/admin/Dashboard"));
 const AdminAffiliates = lazy(() => import("@/pages/admin/Affiliates"));
+const AffiliateDetails = lazy(() => import("@/pages/admin/AffiliateDetails"));
 const AdminBettingHouses = lazy(() => import("@/pages/admin/BettingHouses"));
 const AdminReports = lazy(() => import("@/pages/admin/Reports"));
 const AdminPayments = lazy(() => import("@/pages/admin/Payments"));
@@ -80,11 +81,9 @@ function Router() {
           
           {/* Afiliados */}
           <Route path="/admin/affiliates/:id">
-            {({ params }) => (
-              <Suspense fallback={<PageLoader />}>
-                <AdminAffiliates affiliateId={params.id} />
-              </Suspense>
-            )}
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateDetails />
+            </Suspense>
           </Route>
           <Route path="/admin/affiliates">
             <Suspense fallback={<PageLoader />}>

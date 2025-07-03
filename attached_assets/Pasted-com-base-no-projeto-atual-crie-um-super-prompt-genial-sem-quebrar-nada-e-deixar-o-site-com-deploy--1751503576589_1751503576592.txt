@@ -1,0 +1,89 @@
+com base no projeto atual, crie um super prompt genial, sem quebrar nada e deixar o site com deploy facil, mas preciso:
+
+-ter opção de adicionar foto no perfil
+-todos os dados do /registro devem ser preenchidos no perfil, e o usuario começa com tudo zerado(criei um e ele já tem varios resultados)
+-admin não está conseguindo ver quantos afiliados reais tem: corrija e deixe tudo zerado;
+-corrija todas as api's para buscar os dados reais;
+-botão para o ADMIN poder navegar no perfil de usuario;
+-criar página meus links e casas de apostas do painel do usuário:
+    ### 5. **Casas de Apostas** - `/betting-houses`
+**Arquivo:** `client/src/pages/betting-houses.tsx`
+**Função:** Listagem e afiliação às casas disponíveis
+**Funcionalidades:**
+- **Lista de Casas Disponíveis:**
+  - Card visual para cada casa
+  - Logo, nome, descrição
+  - Tipo de comissão (CPA/RevShare/Hybrid)
+  - Valor da comissão
+  - Status de afiliação do usuário
+- **Sistema de Afiliação:**
+  - Botão "Afiliar-se" para casas não afiliadas
+  - Geração automática de links únicos
+  - Validação de afiliação única por casa
+- **Filtros e Busca:**
+  - Filtrar por tipo de comissão
+  - Buscar por nome da casa
+  - Ordenar por maior comissão
+- **Link Tracking:**
+  - Geração de URL com subid (username)
+  - Sistema de tracking de cliques
+
+### 6. **Meus Links** - `/my-links`
+**Arquivo:** `client/src/pages/my-links.tsx`
+**Função:** Gerenciamento dos links de afiliação
+**Funcionalidades:**
+- **Lista de Links Ativos:**
+  - URL completo gerado
+  - Casa de apostas associada
+  - Data de criação
+  - Status (ativo/inativo)
+- **Estatísticas por Link:**
+  - Número total de cliques
+  - Conversões geradas
+  - Comissão acumulada
+  - Taxa de conversão
+- **Ferramentas de Link:**
+  - Copiar URL para clipboard
+  - Gerar QR Code
+  - Preview do link
+  - Compartilhamento social
+- **Performance Analytics:**
+  - Gráfico de cliques por dia
+  - Horários de maior engajamento
+  - Origem do tráfego
+
+
+-implementar a função postback no sistema:
+### 11. **Gerenciamento de Casas** 
+**Função:** CRUD completo de casas de apostas
+**Funcionalidades:**
+- **Lista de Casas:**
+  - Tabela com todas as casas cadastradas
+  - Status (ativa/inativa)
+  - Tipo de integração (Postback/API)
+  - Número de afiliados conectados
+- **Cadastro de Nova Casa:**
+  - Informações básicas (nome, logo, descrição)
+  - URL base e parâmetros de tracking
+  - Configuração de comissões (CPA/RevShare/Misto(valores diferentes))
+  - Tokens de segurança automáticos
+- **Configurações de Integração:**
+  - **Postback:**
+    - URLs de postback por evento
+    - Parâmetros personalizados
+    - Mapeamento de campos
+  - **API:**
+    - URL base da API
+    - Chaves de autenticação
+    - Método de auth (Bearer/Basic)
+    - Intervalo de sincronização
+- **Postbacks Automáticos:**
+  - Geração de URLs únicas
+  - Teste de connectivity
+  - Logs de requisições
+- **Gestão de Afiliados por Casa:**
+  - Lista de afiliados por casa
+  - Performance individual
+  - Comissões pagas
+
+  

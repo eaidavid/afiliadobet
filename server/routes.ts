@@ -137,12 +137,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/affiliates", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      // This would need a more complex query to get affiliate data with stats
-      // For now, return basic structure
-      res.json([]);
+      const affiliates = await storage.getAllAffiliatesWithStats();
+      res.json(affiliates);
     } catch (error) {
       console.error("Error fetching affiliates:", error);
       res.status(500).json({ message: "Erro ao buscar afiliados" });
+    }
+  });
+
+  app.get("/api/admin/affiliates/stats", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getAdminAffiliateStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching affiliate stats:", error);
+      res.status(500).json({ message: "Erro ao buscar estatísticas de afiliados" });
+    }
+  });
+
+  app.get("/api/admin/affiliates/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const affiliateId = parseInt(req.params.id);
+      const affiliate = await storage.getAffiliateDetailById(affiliateId);
+      if (!affiliate) {
+        return res.status(404).json({ message: "Afiliado não encontrado" });
+      }
+      res.json(affiliate);
+    } catch (error) {
+      console.error("Error fetching affiliate details:", error);
+      res.status(500).json({ message: "Erro ao buscar detalhes do afiliado" });
     }
   });
 
@@ -267,6 +290,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching affiliate stats:", error);
       res.status(500).json({ message: "Erro ao buscar estatísticas" });
+    }
+  });
+
+  // Affiliate profile routes
+  app.get("/api/affiliate/profile", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const profile = await storage.getAffiliateProfile(user.id);
+      const userInfo = await storage.getUser(user.id);
+      res.json({ ...profile, ...userInfo });
+    } catch (error) {
+      console.error("Error fetching affiliate profile:", error);
+      res.status(500).json({ message: "Erro ao buscar perfil" });
+    }
+  });
+
+  app.patch("/api/affiliate/profile", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const profile = await storage.updateAffiliateProfile(user.id, req.body);
+      res.json(profile);
+    } catch (error) {
+      console.error("Error updating affiliate profile:", error);
+      res.status(500).json({ message: "Erro ao atualizar perfil" });
+    }
+  });
+
+  app.get("/api/affiliate/profile/stats", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const stats = await storage.getAffiliateProfileStats(user.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching profile stats:", error);
+      res.status(500).json({ message: "Erro ao buscar estatísticas do perfil" });
+    }
+  });
+
+  // Additional affiliate routes for reports, payments, links, etc.
+  app.get("/api/affiliate/reports", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { type = 'overview', dateRange = '30days' } = req.query;
+      const reports = await storage.getAffiliateReports(user.id, type as string, dateRange as string);
+      res.json(reports);
+    } catch (error) {
+      console.error("Error fetching affiliate reports:", error);
+      res.status(500).json({ message: "Erro ao buscar relatórios" });
+    }
+  });
+
+  app.get("/api/affiliate/payments", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const payments = await storage.getPayments(user.id);
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      res.status(500).json({ message: "Erro ao buscar pagamentos" });
+    }
+  });
+
+  app.get("/api/affiliate/payments/stats", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const stats = await storage.getAffiliatePaymentStats(user.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching payment stats:", error);
+      res.status(500).json({ message: "Erro ao buscar estatísticas de pagamentos" });
+    }
+  });
+
+  app.get("/api/affiliate/balance", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const balance = await storage.getAffiliateBalance(user.id);
+      res.json(balance);
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+      res.status(500).json({ message: "Erro ao buscar saldo" });
+    }
+  });
+
+  app.post("/api/affiliate/payments/request", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const payment = await storage.createPaymentRequest(user.id, req.body);
+      res.status(201).json(payment);
+    } catch (error) {
+      console.error("Error creating payment request:", error);
+      res.status(400).json({ message: "Erro ao solicitar pagamento" });
+    }
+  });
+
+  app.get("/api/affiliate/goals", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const goals = await storage.getAffiliateGoals(user.id);
+      res.json(goals);
+    } catch (error) {
+      console.error("Error fetching goals:", error);
+      res.status(500).json({ message: "Erro ao buscar metas" });
+    }
+  });
+
+  app.get("/api/affiliate/recent-conversions", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const conversions = await storage.getRecentConversions(user.id);
+      res.json(conversions);
+    } catch (error) {
+      console.error("Error fetching recent conversions:", error);
+      res.status(500).json({ message: "Erro ao buscar conversões recentes" });
     }
   });
 
