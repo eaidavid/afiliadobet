@@ -72,30 +72,92 @@ function Router() {
       <AdminLayout>
         <Switch>
           {/* Dashboard */}
-          <Route path="/admin/dashboard" component={() => <LazyRoute component={AdminDashboard} />} />
+          <Route path="/admin/dashboard">
+            <Suspense fallback={<PageLoader />}>
+              <AdminDashboard />
+            </Suspense>
+          </Route>
           
           {/* Afiliados */}
-          <Route path="/admin/affiliates/:id" component={({ params }) => <LazyRoute component={AdminAffiliates} affiliateId={params.id} />} />
-          <Route path="/admin/affiliates" component={() => <LazyRoute component={AdminAffiliates} />} />
+          <Route path="/admin/affiliates/:id">
+            {({ params }) => (
+              <Suspense fallback={<PageLoader />}>
+                <AdminAffiliates affiliateId={params.id} />
+              </Suspense>
+            )}
+          </Route>
+          <Route path="/admin/affiliates">
+            <Suspense fallback={<PageLoader />}>
+              <AdminAffiliates />
+            </Suspense>
+          </Route>
           
           {/* Casas de Apostas */}
-          <Route path="/admin/betting-houses/:id/edit" component={({ params }) => <LazyRoute component={AdminBettingHouses} editId={params.id} />} />
-          <Route path="/admin/betting-houses" component={() => <LazyRoute component={AdminBettingHouses} />} />
+          <Route path="/admin/betting-houses/:id/edit">
+            {({ params }) => (
+              <Suspense fallback={<PageLoader />}>
+                <AdminBettingHouses editId={params.id} />
+              </Suspense>
+            )}
+          </Route>
+          <Route path="/admin/betting-houses">
+            <Suspense fallback={<PageLoader />}>
+              <AdminBettingHouses />
+            </Suspense>
+          </Route>
           
           {/* Relatórios */}
-          <Route path="/admin/reports/revenue" component={() => <LazyRoute component={AdminReports} type="revenue" />} />
-          <Route path="/admin/reports/performance" component={() => <LazyRoute component={AdminReports} type="performance" />} />
-          <Route path="/admin/reports/conversions" component={() => <LazyRoute component={AdminReports} type="conversions" />} />
-          <Route path="/admin/reports" component={() => <LazyRoute component={AdminReports} />} />
+          <Route path="/admin/reports/revenue">
+            <Suspense fallback={<PageLoader />}>
+              <AdminReports type="revenue" />
+            </Suspense>
+          </Route>
+          <Route path="/admin/reports/performance">
+            <Suspense fallback={<PageLoader />}>
+              <AdminReports type="performance" />
+            </Suspense>
+          </Route>
+          <Route path="/admin/reports/conversions">
+            <Suspense fallback={<PageLoader />}>
+              <AdminReports type="conversions" />
+            </Suspense>
+          </Route>
+          <Route path="/admin/reports">
+            <Suspense fallback={<PageLoader />}>
+              <AdminReports />
+            </Suspense>
+          </Route>
           
           {/* Pagamentos */}
-          <Route path="/admin/payments/:id" component={({ params }) => <LazyRoute component={AdminPayments} paymentId={params.id} />} />
-          <Route path="/admin/payments" component={() => <LazyRoute component={AdminPayments} />} />
+          <Route path="/admin/payments/:id">
+            {({ params }) => (
+              <Suspense fallback={<PageLoader />}>
+                <AdminPayments paymentId={params.id} />
+              </Suspense>
+            )}
+          </Route>
+          <Route path="/admin/payments">
+            <Suspense fallback={<PageLoader />}>
+              <AdminPayments />
+            </Suspense>
+          </Route>
           
           {/* Configurações */}
-          <Route path="/admin/settings/general" component={() => <LazyRoute component={AdminSettings} section="general" />} />
-          <Route path="/admin/settings/commission" component={() => <LazyRoute component={AdminSettings} section="commission" />} />
-          <Route path="/admin/settings" component={() => <LazyRoute component={AdminSettings} />} />
+          <Route path="/admin/settings/general">
+            <Suspense fallback={<PageLoader />}>
+              <AdminSettings section="general" />
+            </Suspense>
+          </Route>
+          <Route path="/admin/settings/commission">
+            <Suspense fallback={<PageLoader />}>
+              <AdminSettings section="commission" />
+            </Suspense>
+          </Route>
+          <Route path="/admin/settings">
+            <Suspense fallback={<PageLoader />}>
+              <AdminSettings />
+            </Suspense>
+          </Route>
           
           {/* Redirects */}
           <Route path="/admin"><Redirect to="/admin/dashboard" /></Route>
@@ -109,29 +171,83 @@ function Router() {
       <AffiliateLayout>
         <Switch>
           {/* Dashboard */}
-          <Route path="/affiliate/dashboard" component={() => <LazyRoute component={AffiliateDashboard} />} />
+          <Route path="/affiliate/dashboard">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateDashboard />
+            </Suspense>
+          </Route>
           
           {/* Links */}
-          <Route path="/affiliate/links/create" component={() => <LazyRoute component={AffiliateMyLinks} create={true} />} />
-          <Route path="/affiliate/links/:id/analytics" component={({ params }) => <LazyRoute component={AffiliateMyLinks} analyticsId={params.id} />} />
-          <Route path="/affiliate/links" component={() => <LazyRoute component={AffiliateMyLinks} />} />
+          <Route path="/affiliate/links/create">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateMyLinks create={true} />
+            </Suspense>
+          </Route>
+          <Route path="/affiliate/links/:id/analytics">
+            {({ params }) => (
+              <Suspense fallback={<PageLoader />}>
+                <AffiliateMyLinks analyticsId={params.id} />
+              </Suspense>
+            )}
+          </Route>
+          <Route path="/affiliate/links">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateMyLinks />
+            </Suspense>
+          </Route>
           
           {/* Campanhas */}
-          <Route path="/affiliate/campaigns/create" component={() => <LazyRoute component={AffiliateBettingHouses} createCampaign={true} />} />
-          <Route path="/affiliate/campaigns" component={() => <LazyRoute component={AffiliateBettingHouses} />} />
+          <Route path="/affiliate/campaigns/create">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateBettingHouses createCampaign={true} />
+            </Suspense>
+          </Route>
+          <Route path="/affiliate/campaigns">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateBettingHouses />
+            </Suspense>
+          </Route>
           
           {/* Relatórios */}
-          <Route path="/affiliate/reports/commissions" component={() => <LazyRoute component={AffiliateReports} type="commissions" />} />
-          <Route path="/affiliate/reports/conversions" component={() => <LazyRoute component={AffiliateReports} type="conversions" />} />
-          <Route path="/affiliate/reports" component={() => <LazyRoute component={AffiliateReports} />} />
+          <Route path="/affiliate/reports/commissions">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateReports type="commissions" />
+            </Suspense>
+          </Route>
+          <Route path="/affiliate/reports/conversions">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateReports type="conversions" />
+            </Suspense>
+          </Route>
+          <Route path="/affiliate/reports">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateReports />
+            </Suspense>
+          </Route>
           
           {/* Pagamentos */}
-          <Route path="/affiliate/payments/request" component={() => <LazyRoute component={AffiliatePayments} request={true} />} />
-          <Route path="/affiliate/payments" component={() => <LazyRoute component={AffiliatePayments} />} />
+          <Route path="/affiliate/payments/request">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliatePayments request={true} />
+            </Suspense>
+          </Route>
+          <Route path="/affiliate/payments">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliatePayments />
+            </Suspense>
+          </Route>
           
           {/* Perfil */}
-          <Route path="/affiliate/profile/banking" component={() => <LazyRoute component={AffiliateProfile} section="banking" />} />
-          <Route path="/affiliate/profile" component={() => <LazyRoute component={AffiliateProfile} />} />
+          <Route path="/affiliate/profile/banking">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateProfile section="banking" />
+            </Suspense>
+          </Route>
+          <Route path="/affiliate/profile">
+            <Suspense fallback={<PageLoader />}>
+              <AffiliateProfile />
+            </Suspense>
+          </Route>
           
           {/* Redirects */}
           <Route path="/affiliate"><Redirect to="/affiliate/dashboard" /></Route>

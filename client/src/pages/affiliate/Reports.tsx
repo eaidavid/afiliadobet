@@ -1,340 +1,332 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { CalendarIcon, Download, TrendingUp, MousePointer, Target, DollarSign } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  BarChart3, 
+  TrendingUp, 
+  DollarSign, 
+  MousePointer, 
+  Download,
+  Calendar,
+  Target,
+  Percent,
+  Activity,
+  RefreshCw,
+  Link2,
+  Users,
+  Clock
+} from 'lucide-react';
+import { FinancialCard } from '@/components/ui/FinancialCard';
 
-export default function AffiliateReports() {
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-    to: new Date(),
+interface ReportsProps {
+  type?: string;
+}
+
+export default function Reports({ type = 'overview' }: ReportsProps) {
+  const [dateRange, setDateRange] = useState('30days');
+  const [reportType, setReportType] = useState(type);
+
+  // Query para dados dos relatórios do afiliado
+  const { data: reportData, isLoading, refetch } = useQuery({
+    queryKey: ['/api/affiliate/reports', reportType, dateRange]
   });
-  const [reportType, setReportType] = useState("performance");
 
-  const { data: stats } = useQuery({
-    queryKey: ["/api/affiliate/stats"],
-  });
-
-  const { data: performance } = useQuery({
-    queryKey: ["/api/affiliate/performance", { days: 30 }],
-  });
-
-  // Mock data for demonstration
-  const mockPerformanceData = [
-    { date: '2024-01-01', clicks: 150, conversions: 8, commission: 420 },
-    { date: '2024-01-02', clicks: 180, conversions: 12, commission: 680 },
-    { date: '2024-01-03', clicks: 220, conversions: 15, commission: 825 },
-    { date: '2024-01-04', clicks: 190, conversions: 10, commission: 550 },
-    { date: '2024-01-05', clicks: 240, conversions: 18, commission: 980 },
-    { date: '2024-01-06', clicks: 200, conversions: 14, commission: 770 },
-    { date: '2024-01-07', clicks: 280, conversions: 20, commission: 1200 },
-  ];
-
-  const mockHousePerformance = [
-    { name: 'Bet365', conversions: 45, commission: 2400, color: '#3B82F6' },
-    { name: 'Betano', conversions: 32, commission: 1800, color: '#10B981' },
-    { name: 'Sportingbet', conversions: 28, commission: 1540, color: '#8B5CF6' },
-    { name: 'Outros', conversions: 15, commission: 825, color: '#F59E0B' },
-  ];
-
-  const handleExportReport = () => {
-    // Implementation for exporting reports
-    console.log('Exporting report...');
-  };
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="bg-slate-800/50 rounded-xl p-6 animate-pulse">
+              <div className="h-4 bg-slate-700 rounded mb-4"></div>
+              <div className="h-8 bg-slate-700 rounded"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Relatórios de Performance</h2>
-        <Button onClick={handleExportReport} className="bg-primary hover:bg-primary/90">
-          <Download className="w-4 h-4 mr-2" />
-          Exportar
-        </Button>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Meus Relatórios</h1>
+          <p className="text-slate-400">Análise detalhada do seu desempenho como afiliado</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={() => refetch()}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Atualizar
+          </Button>
+          <Button className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-gray-900">
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
+          </Button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card className="glass-card">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Select value={reportType} onValueChange={setReportType}>
-              <SelectTrigger className="bg-surface border-white/10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="performance">Performance Geral</SelectItem>
-                <SelectItem value="houses">Por Casa de Apostas</SelectItem>
-                <SelectItem value="campaigns">Por Campanha</SelectItem>
-                <SelectItem value="conversion">Funil de Conversão</SelectItem>
-              </SelectContent>
-            </Select>
+      {/* Filtros */}
+      <Card className="bg-slate-800/50 border-slate-700/50">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm text-slate-300 mb-2 block">Tipo de Relatório</label>
+              <Select value={reportType} onValueChange={setReportType}>
+                <SelectTrigger className="bg-slate-900/50 border-slate-600">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="overview">Visão Geral</SelectItem>
+                  <SelectItem value="clicks">Cliques</SelectItem>
+                  <SelectItem value="conversions">Conversões</SelectItem>
+                  <SelectItem value="earnings">Ganhos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start text-left font-normal bg-surface border-white/10",
-                    !dateRange.from && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "dd/MM/yy", { locale: ptBR })} -{" "}
-                        {format(dateRange.to, "dd/MM/yy", { locale: ptBR })}
-                      </>
-                    ) : (
-                      format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })
-                    )
-                  ) : (
-                    "Selecionar período"
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 glass-card border-white/10" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange.from}
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  numberOfMonths={2}
-                  className="rounded-md"
-                />
-              </PopoverContent>
-            </Popover>
+            <div>
+              <label className="text-sm text-slate-300 mb-2 block">Período</label>
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="bg-slate-900/50 border-slate-600">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7days">Últimos 7 dias</SelectItem>
+                  <SelectItem value="30days">Últimos 30 dias</SelectItem>
+                  <SelectItem value="3months">Últimos 3 meses</SelectItem>
+                  <SelectItem value="6months">Últimos 6 meses</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select defaultValue="all">
-              <SelectTrigger className="bg-surface border-white/10">
-                <SelectValue placeholder="Todas as casas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as casas</SelectItem>
-                <SelectItem value="bet365">Bet365</SelectItem>
-                <SelectItem value="betano">Betano</SelectItem>
-                <SelectItem value="sportingbet">Sportingbet</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button variant="secondary">
-              Aplicar Filtros
-            </Button>
+            <div>
+              <label className="text-sm text-slate-300 mb-2 block">Casa de Apostas</label>
+              <Select>
+                <SelectTrigger className="bg-slate-900/50 border-slate-600">
+                  <SelectValue placeholder="Todas as casas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as casas</SelectItem>
+                  <SelectItem value="bet365">Bet365</SelectItem>
+                  <SelectItem value="sportingbet">Sportingbet</SelectItem>
+                  <SelectItem value="betano">Betano</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Summary Cards */}
+      {/* Métricas principais */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="glass-card">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Cliques</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats?.totalClicks || 0}
-                </p>
-              </div>
-              <MousePointer className="w-8 h-8 text-primary opacity-75" />
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <TrendingUp className="w-4 h-4 text-secondary mr-1" />
-              <span className="text-secondary">+12.5%</span>
-              <span className="text-muted-foreground ml-1">vs período anterior</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Conversões</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats?.totalConversions || 0}
-                </p>
-              </div>
-              <Target className="w-8 h-8 text-secondary opacity-75" />
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <TrendingUp className="w-4 h-4 text-secondary mr-1" />
-              <span className="text-secondary">+8.3%</span>
-              <span className="text-muted-foreground ml-1">vs período anterior</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Taxa de Conversão</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {stats?.totalClicks > 0 
-                    ? ((stats.totalConversions / stats.totalClicks) * 100).toFixed(1)
-                    : '0.0'
-                  }%
-                </p>
-              </div>
-              <div className="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center">
-                <span className="text-accent font-bold">%</span>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <TrendingUp className="w-4 h-4 text-secondary mr-1" />
-              <span className="text-secondary">+2.1%</span>
-              <span className="text-muted-foreground ml-1">vs período anterior</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Comissão Total</p>
-                <p className="text-2xl font-bold text-foreground">
-                  R$ {Number(stats?.totalCommission || 0).toFixed(2)}
-                </p>
-              </div>
-              <DollarSign className="w-8 h-8 text-warning opacity-75" />
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <TrendingUp className="w-4 h-4 text-secondary mr-1" />
-              <span className="text-secondary">+15.7%</span>
-              <span className="text-muted-foreground ml-1">vs período anterior</span>
-            </div>
-          </CardContent>
-        </Card>
+        <FinancialCard
+          title="Total de Cliques"
+          value={reportData?.totalClicks?.toLocaleString() || '2.847'}
+          change="+18.3%"
+          changeType="positive"
+          icon={MousePointer}
+          gradient="from-blue-400 to-blue-600"
+        />
+        
+        <FinancialCard
+          title="Conversões"
+          value={reportData?.totalConversions?.toLocaleString() || '186'}
+          change="+24.1%"
+          changeType="positive"
+          icon={Target}
+          gradient="from-green-400 to-green-600"
+        />
+        
+        <FinancialCard
+          title="Taxa de Conversão"
+          value={`${reportData?.conversionRate || '6.53'}%`}
+          change="+0.4%"
+          changeType="positive"
+          icon={Percent}
+          gradient="from-purple-400 to-purple-600"
+        />
+        
+        <FinancialCard
+          title="Comissões Ganhas"
+          value={`R$ ${reportData?.totalEarnings?.toLocaleString() || '4.920'}`}
+          change="+32.7%"
+          changeType="positive"
+          icon={DollarSign}
+          gradient="from-yellow-400 to-yellow-600"
+        />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Performance Over Time */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-foreground">Performance ao Longo do Tempo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockPerformanceData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="#64748B"
-                    tickFormatter={(value) => format(new Date(value), "dd/MM", { locale: ptBR })}
-                  />
-                  <YAxis stroke="#64748B" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(30, 41, 59, 0.9)', 
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '8px'
-                    }}
-                    labelFormatter={(value) => format(new Date(value), "dd/MM/yyyy", { locale: ptBR })}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="clicks" 
-                    stroke="#3B82F6" 
-                    strokeWidth={2}
-                    name="Cliques"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="conversions" 
-                    stroke="#10B981" 
-                    strokeWidth={2}
-                    name="Conversões"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Conteúdo específico por tipo */}
+      {reportType === 'overview' && <OverviewReport data={reportData} />}
+      {reportType === 'clicks' && <ClicksReport data={reportData} />}
+      {reportType === 'conversions' && <ConversionsReport data={reportData} />}
+      {reportType === 'earnings' && <EarningsReport data={reportData} />}
+    </div>
+  );
+}
 
-        {/* Performance by House */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-foreground">Performance por Casa</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={mockHousePerformance}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="commission"
-                  >
-                    {mockHousePerformance.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(30, 41, 59, 0.9)', 
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '8px'
-                    }}
-                    formatter={(value: any) => [`R$ ${value}`, 'Comissão']}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Detailed Table */}
-      <Card className="glass-card">
+// Componente para relatório de visão geral
+function OverviewReport({ data }: { data: any }) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Performance mensal */}
+      <Card className="bg-slate-800/50 border-slate-700/50">
         <CardHeader>
-          <CardTitle className="text-foreground">Detalhamento por Período</CardTitle>
+          <CardTitle className="text-white flex items-center">
+            <BarChart3 className="w-5 h-5 mr-2" />
+            Performance Mensal
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left p-4 text-foreground">Data</th>
-                  <th className="text-left p-4 text-foreground">Cliques</th>
-                  <th className="text-left p-4 text-foreground">Conversões</th>
-                  <th className="text-left p-4 text-foreground">Taxa</th>
-                  <th className="text-left p-4 text-foreground">Comissão</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockPerformanceData.map((row, index) => (
-                  <tr key={index} className="border-b border-white/5">
-                    <td className="p-4 text-foreground">
-                      {format(new Date(row.date), "dd/MM/yyyy", { locale: ptBR })}
-                    </td>
-                    <td className="p-4 text-foreground">{row.clicks}</td>
-                    <td className="p-4 text-foreground">{row.conversions}</td>
-                    <td className="p-4 text-foreground">
-                      {((row.conversions / row.clicks) * 100).toFixed(1)}%
-                    </td>
-                    <td className="p-4 text-foreground">R$ {row.commission.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="h-64 flex items-center justify-center text-slate-400">
+            <BarChart3 className="w-16 h-16 opacity-50" />
+            <span className="ml-4">Gráfico de performance será implementado aqui</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top links */}
+      <Card className="bg-slate-800/50 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-white">Meus Melhores Links</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[
+              { name: 'Bet365 - Promoção Copa', clicks: 485, conversions: 42, earnings: 1890 },
+              { name: 'Betano - Futebol Especial', clicks: 356, conversions: 31, earnings: 1395 },
+              { name: 'Sportingbet - Cashback', clicks: 298, conversions: 24, earnings: 1080 },
+              { name: 'KTO - Primeiro Depósito', clicks: 267, conversions: 18, earnings: 810 }
+            ].map((link, index) => (
+              <div key={link.name} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-gray-900 font-bold text-sm">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <span className="text-white font-medium">{link.name}</span>
+                    <p className="text-xs text-slate-400">{link.clicks} cliques • {link.conversions} conversões</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-white font-bold">R$ {link.earnings}</p>
+                  <p className="text-xs text-slate-400">{((link.conversions / link.clicks) * 100).toFixed(1)}%</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Atividade recente */}
+      <Card className="bg-slate-800/50 border-slate-700/50 lg:col-span-2">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center">
+            <Activity className="w-5 h-5 mr-2" />
+            Atividade Recente
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[
+              { 
+                action: 'Nova conversão registrada', 
+                details: 'Bet365 - R$ 125 comissão',
+                time: '2 horas atrás',
+                type: 'conversion'
+              },
+              { 
+                action: 'Cliques do seu link', 
+                details: 'Betano - 15 novos cliques',
+                time: '4 horas atrás',
+                type: 'click'
+              },
+              { 
+                action: 'Link criado', 
+                details: 'Novo link para KTO',
+                time: '1 dia atrás',
+                type: 'link'
+              },
+              { 
+                action: 'Conversão confirmada', 
+                details: 'Sportingbet - R$ 89 comissão',
+                time: '1 dia atrás',
+                type: 'conversion'
+              }
+            ].map((activity, index) => (
+              <div key={index} className="flex items-center space-x-3 p-3 bg-slate-700/30 rounded-lg">
+                <div className={`w-3 h-3 rounded-full ${
+                  activity.type === 'conversion' ? 'bg-green-400' :
+                  activity.type === 'click' ? 'bg-blue-400' :
+                  activity.type === 'link' ? 'bg-purple-400' : 'bg-yellow-400'
+                }`}></div>
+                <div className="flex-1">
+                  <p className="text-white font-medium">{activity.action}</p>
+                  <p className="text-sm text-slate-400">{activity.details}</p>
+                </div>
+                <span className="text-xs text-slate-500">{activity.time}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Componente para relatório de cliques
+function ClicksReport({ data }: { data: any }) {
+  return (
+    <div className="space-y-6">
+      <Card className="bg-slate-800/50 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-white">Análise Detalhada de Cliques</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-96 flex items-center justify-center text-slate-400">
+            <MousePointer className="w-16 h-16 opacity-50" />
+            <span className="ml-4">Análise de cliques será implementada aqui</span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Componente para relatório de conversões
+function ConversionsReport({ data }: { data: any }) {
+  return (
+    <div className="space-y-6">
+      <Card className="bg-slate-800/50 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-white">Funil de Conversões</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-96 flex items-center justify-center text-slate-400">
+            <Target className="w-16 h-16 opacity-50" />
+            <span className="ml-4">Funil de conversões será implementado aqui</span>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Componente para relatório de ganhos
+function EarningsReport({ data }: { data: any }) {
+  return (
+    <div className="space-y-6">
+      <Card className="bg-slate-800/50 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-white">Histórico de Ganhos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-96 flex items-center justify-center text-slate-400">
+            <DollarSign className="w-16 h-16 opacity-50" />
+            <span className="ml-4">Histórico de ganhos será implementado aqui</span>
           </div>
         </CardContent>
       </Card>

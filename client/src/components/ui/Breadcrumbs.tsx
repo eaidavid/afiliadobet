@@ -1,5 +1,5 @@
-import { Link, useLocation } from "wouter";
-import { ChevronRight, Home } from "lucide-react";
+import { useLocation, Link } from 'wouter';
+import { ChevronRight, Home } from 'lucide-react';
 
 interface BreadcrumbItem {
   label: string;
@@ -8,78 +8,76 @@ interface BreadcrumbItem {
 
 export function Breadcrumbs() {
   const [location] = useLocation();
+  const pathSegments = location.split('/').filter(Boolean);
   
-  const generateBreadcrumbs = (path: string): BreadcrumbItem[] => {
-    const segments = path.split('/').filter(Boolean);
-    const breadcrumbs: BreadcrumbItem[] = [];
-    
-    // Adiciona Home
-    breadcrumbs.push({ label: "Home", href: "/" });
-    
-    // Processa cada segmento
-    let currentPath = "";
-    segments.forEach((segment, index) => {
-      currentPath += `/${segment}`;
-      
-      // Mapeia segmentos para labels legíveis
-      const labelMap: { [key: string]: string } = {
-        admin: "Administração",
-        affiliate: "Afiliado",
-        dashboard: "Dashboard",
-        affiliates: "Afiliados",
-        "betting-houses": "Casas de Apostas",
-        reports: "Relatórios",
-        payments: "Pagamentos",
-        settings: "Configurações",
-        links: "Meus Links",
-        campaigns: "Campanhas",
-        profile: "Perfil",
-        revenue: "Receita",
-        performance: "Performance",
-        conversions: "Conversões",
-        commissions: "Comissões",
-        general: "Geral",
-        commission: "Comissões",
-        banking: "Dados Bancários",
-        create: "Criar",
-        edit: "Editar",
-        analytics: "Analytics",
-        request: "Solicitar"
-      };
-      
-      const label = labelMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
-      
-      // Se não é o último item, adiciona href
-      if (index < segments.length - 1) {
-        breadcrumbs.push({ label, href: currentPath });
-      } else {
-        breadcrumbs.push({ label });
-      }
-    });
-    
-    return breadcrumbs;
+  // Mapear segmentos para nomes legíveis
+  const segmentMap: Record<string, string> = {
+    admin: 'Administração',
+    affiliate: 'Afiliado',
+    dashboard: 'Dashboard',
+    affiliates: 'Afiliados',
+    'betting-houses': 'Casas de Apostas',
+    reports: 'Relatórios',
+    payments: 'Pagamentos',
+    settings: 'Configurações',
+    links: 'Meus Links',
+    profile: 'Perfil',
+    campaigns: 'Campanhas',
+    revenue: 'Receita',
+    performance: 'Performance',
+    conversions: 'Conversões',
+    commissions: 'Comissões',
+    banking: 'Dados Bancários',
+    general: 'Geral',
+    commission: 'Comissão',
+    create: 'Criar',
+    edit: 'Editar',
+    analytics: 'Analytics',
+    request: 'Solicitar'
   };
-  
-  const breadcrumbs = generateBreadcrumbs(location);
-  
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Início', href: '/' }
+  ];
+
+  let currentPath = '';
+  pathSegments.forEach((segment, index) => {
+    currentPath += `/${segment}`;
+    const isLast = index === pathSegments.length - 1;
+    
+    // Pular IDs numéricos nos breadcrumbs
+    if (/^\d+$/.test(segment)) return;
+    
+    breadcrumbs.push({
+      label: segmentMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1),
+      href: isLast ? undefined : currentPath
+    });
+  });
+
+  if (breadcrumbs.length === 1) return null;
+
   return (
-    <nav className="flex items-center space-x-2 text-sm text-slate-400 mb-6">
-      {breadcrumbs.map((item, index) => (
-        <div key={index} className="flex items-center space-x-2">
-          {index > 0 && <ChevronRight className="w-4 h-4" />}
-          {index === 0 && <Home className="w-4 h-4" />}
-          {item.href ? (
-            <Link 
-              to={item.href}
-              className="hover:text-yellow-400 transition-colors cursor-pointer"
-            >
-              {item.label}
-            </Link>
-          ) : (
-            <span className="text-white font-medium">{item.label}</span>
-          )}
-        </div>
-      ))}
+    <nav className="flex mb-6" aria-label="Breadcrumb">
+      <ol className="flex items-center space-x-2">
+        {breadcrumbs.map((breadcrumb, index) => (
+          <li key={index} className="flex items-center">
+            {index > 0 && <ChevronRight className="w-4 h-4 text-slate-400 mx-2" />}
+            {index === 0 && <Home className="w-4 h-4 mr-2 text-slate-400" />}
+            {breadcrumb.href ? (
+              <Link 
+                to={breadcrumb.href}
+                className="text-slate-300 hover:text-yellow-400 transition-colors text-sm font-medium"
+              >
+                {breadcrumb.label}
+              </Link>
+            ) : (
+              <span className="text-yellow-400 text-sm font-medium">
+                {breadcrumb.label}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
     </nav>
   );
 }

@@ -1,151 +1,199 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { UserPlus, Eye, Edit, Trash2, Search, Filter, Download, Mail, Phone, Calendar, TrendingUp, User, MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { StatusBadge } from "@/components/ui/StatusBadge";
-import { FinancialCard } from "@/components/ui/FinancialCard";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
-import { useState } from "react";
-import { Link } from "wouter";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Link } from 'wouter';
+import { 
+  Search, 
+  Eye, 
+  Edit, 
+  Ban, 
+  CheckCircle, 
+  DollarSign,
+  TrendingUp,
+  Users,
+  Calendar,
+  Download,
+  Filter,
+  RefreshCw
+} from 'lucide-react';
 
-export default function AdminAffiliates({ affiliateId }: { affiliateId?: string }) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [dateRange, setDateRange] = useState("all");
+interface AffiliateFilters {
+  search: string;
+  status: string;
+  dateRange: string;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+}
 
-  const { data: affiliates, isLoading } = useQuery({
-    queryKey: ["/api/admin/affiliates", { search: searchTerm, status: statusFilter, dateRange }],
-    keepPreviousData: true,
+export default function Affiliates({ affiliateId }: { affiliateId?: string }) {
+  const [filters, setFilters] = useState<AffiliateFilters>({
+    search: '',
+    status: 'all',
+    dateRange: 'all',
+    sortBy: 'created',
+    sortOrder: 'desc'
   });
 
-  // Se está visualizando um afiliado específico
-  if (affiliateId) {
-    return <AffiliateDetails affiliateId={affiliateId} />;
+  const [selectedAffiliates, setSelectedAffiliates] = useState<number[]>([]);
+
+  // Query para lista de afiliados
+  const { data: affiliates, isLoading, refetch } = useQuery({
+    queryKey: ['/api/admin/affiliates', filters],
+    keepPreviousData: true
+  });
+
+  // Query para afiliado específico (se ID fornecido)
+  const { data: affiliateDetails } = useQuery({
+    queryKey: ['/api/admin/affiliates', affiliateId],
+    enabled: !!affiliateId
+  });
+
+  // Query para estatísticas gerais
+  const { data: stats } = useQuery({
+    queryKey: ['/api/admin/affiliates/stats']
+  });
+
+  const updateFilters = (key: keyof AffiliateFilters, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const toggleSelectAffiliate = (id: number) => {
+    setSelectedAffiliates(prev => 
+      prev.includes(id) 
+        ? prev.filter(affId => affId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const selectAllAffiliates = () => {
+    setSelectedAffiliates(
+      selectedAffiliates.length === (affiliates?.length || 0) 
+        ? [] 
+        : affiliates?.map((a: any) => a.id) || []
+    );
+  };
+
+  if (affiliateId && affiliateDetails) {
+    return <AffiliateDetailView affiliate={affiliateDetails} />;
   }
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="bg-slate-800/50 border-slate-700/50">
-              <CardContent className="p-6">
-                <div className="animate-pulse space-y-3">
-                  <div className="h-4 bg-slate-700 rounded w-3/4"></div>
-                  <div className="h-8 bg-slate-700 rounded w-1/2"></div>
-                </div>
-              </CardContent>
-            </Card>
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-slate-800/50 rounded-xl p-6 animate-pulse">
+              <div className="h-4 bg-slate-700 rounded mb-4"></div>
+              <div className="h-8 bg-slate-700 rounded"></div>
+            </div>
           ))}
         </div>
       </div>
     );
   }
 
-  const filteredAffiliates = affiliates?.filter((affiliate: any) => {
-    const matchesSearch = affiliate.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         affiliate.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         affiliate.cpf?.includes(searchTerm);
-    const matchesStatus = statusFilter === "all" || affiliate.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  }) || [];
-
   return (
-    <div className="space-y-8 p-6">
-      <Breadcrumbs />
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Gestão de Afiliados</h1>
-          <p className="text-slate-300 mt-2">
-            Gerencie todos os afiliados cadastrados na plataforma
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10">
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
-          </Button>
-          <Button className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-300 hover:to-yellow-500 text-gray-900 font-semibold">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Novo Afiliado
-          </Button>
-        </div>
-      </div>
-
-      {/* Métricas de Afiliados */}
+    <div className="space-y-6">
+      {/* Estatísticas gerais */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <FinancialCard
-          title="Total de Afiliados"
-          value={filteredAffiliates.length}
-          change="+8"
-          changeType="positive"
-          icon={User}
-          gradient="from-blue-400 to-blue-600"
-        />
-        
-        <FinancialCard
-          title="Afiliados Ativos"
-          value={filteredAffiliates.filter(a => a.status === 'active').length}
-          change="+12.5%"
-          changeType="positive"
-          icon={TrendingUp}
-          gradient="from-green-400 to-green-600"
-        />
-        
-        <FinancialCard
-          title="Novos este Mês"
-          value={filteredAffiliates.filter(a => new Date(a.createdAt).getMonth() === new Date().getMonth()).length}
-          change="+25%"
-          changeType="positive"
-          icon={Calendar}
-          gradient="from-yellow-400 to-yellow-600"
-        />
-        
-        <FinancialCard
-          title="Pendentes"
-          value={filteredAffiliates.filter(a => a.status === 'pending').length}
-          change="-5"
-          changeType="negative"
-          icon={User}
-          gradient="from-orange-400 to-orange-600"
-        />
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Total de Afiliados</p>
+                <p className="text-2xl font-bold text-white">{stats?.totalAffiliates || 247}</p>
+              </div>
+              <Users className="w-8 h-8 text-blue-400" />
+            </div>
+            <p className="text-xs text-green-400 mt-2">+12 este mês</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Afiliados Ativos</p>
+                <p className="text-2xl font-bold text-white">{stats?.activeAffiliates || 189}</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-400" />
+            </div>
+            <p className="text-xs text-slate-400 mt-2">76% do total</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Comissões Pagas</p>
+                <p className="text-2xl font-bold text-white">R$ {stats?.totalCommissionsPaid?.toLocaleString() || '145.230'}</p>
+              </div>
+              <DollarSign className="w-8 h-8 text-yellow-400" />
+            </div>
+            <p className="text-xs text-green-400 mt-2">+8.5% vs mês passado</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Performance Média</p>
+                <p className="text-2xl font-bold text-white">{stats?.averageConversionRate || '5.8'}%</p>
+              </div>
+              <TrendingUp className="w-8 h-8 text-purple-400" />
+            </div>
+            <p className="text-xs text-slate-400 mt-2">Taxa de conversão</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Filtros Avançados */}
-      <Card className="bg-slate-800/50 backdrop-blur-sm border-slate-700/50">
+      {/* Filtros avançados */}
+      <Card className="bg-slate-800/50 border-slate-700/50">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Filter className="w-5 h-5 text-yellow-400" />
-            Filtros Avançados
+          <CardTitle className="text-white flex items-center justify-between">
+            <div className="flex items-center">
+              <Filter className="w-5 h-5 mr-2" />
+              Filtros e Busca
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm" onClick={() => refetch()}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Atualizar
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="w-4 h-4 mr-2" />
+                Exportar
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {/* Busca */}
+            <div className="md:col-span-2">
               <Label className="text-slate-300">Buscar Afiliado</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
-                  placeholder="Nome, email ou CPF..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-slate-900/50 border-slate-600"
+                  placeholder="Nome, email, CPF ou ID..."
+                  value={filters.search}
+                  onChange={(e) => updateFilters('search', e.target.value)}
+                  className="bg-slate-900/50 border-slate-600 pl-10"
                 />
               </div>
             </div>
             
+            {/* Status */}
             <div>
               <Label className="text-slate-300">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={filters.status} onValueChange={(value) => updateFilters('status', value)}>
                 <SelectTrigger className="bg-slate-900/50 border-slate-600">
                   <SelectValue />
                 </SelectTrigger>
@@ -154,13 +202,15 @@ export default function AdminAffiliates({ affiliateId }: { affiliateId?: string 
                   <SelectItem value="active">Ativos</SelectItem>
                   <SelectItem value="inactive">Inativos</SelectItem>
                   <SelectItem value="pending">Pendentes</SelectItem>
+                  <SelectItem value="banned">Banidos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
+            {/* Período */}
             <div>
               <Label className="text-slate-300">Período</Label>
-              <Select value={dateRange} onValueChange={setDateRange}>
+              <Select value={filters.dateRange} onValueChange={(value) => updateFilters('dateRange', value)}>
                 <SelectTrigger className="bg-slate-900/50 border-slate-600">
                   <SelectValue />
                 </SelectTrigger>
@@ -173,121 +223,137 @@ export default function AdminAffiliates({ affiliateId }: { affiliateId?: string 
                 </SelectContent>
               </Select>
             </div>
-            
-            <div className="flex items-end">
-              <Button variant="outline" className="w-full border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10">
-                Limpar Filtros
-              </Button>
+
+            {/* Ordenação */}
+            <div>
+              <Label className="text-slate-300">Ordenar por</Label>
+              <Select value={filters.sortBy} onValueChange={(value) => updateFilters('sortBy', value)}>
+                <SelectTrigger className="bg-slate-900/50 border-slate-600">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="created">Data de cadastro</SelectItem>
+                  <SelectItem value="name">Nome</SelectItem>
+                  <SelectItem value="commissions">Comissões</SelectItem>
+                  <SelectItem value="conversions">Conversões</SelectItem>
+                  <SelectItem value="lastActivity">Última atividade</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Tabela de Afiliados */}
-      <Card className="bg-slate-800/50 backdrop-blur-sm border-slate-700/50">
+      {/* Tabela de afiliados */}
+      <Card className="bg-slate-800/50 border-slate-700/50">
         <CardHeader>
-          <CardTitle className="text-white">
-            Afiliados ({filteredAffiliates.length})
+          <CardTitle className="text-white flex items-center justify-between">
+            <div>
+              Afiliados ({affiliates?.length || 0})
+              {selectedAffiliates.length > 0 && (
+                <span className="ml-2 text-sm text-yellow-400">
+                  {selectedAffiliates.length} selecionados
+                </span>
+              )}
+            </div>
+            {selectedAffiliates.length > 0 && (
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Ativar
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Ban className="w-4 h-4 mr-2" />
+                  Desativar
+                </Button>
+              </div>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-slate-700/50 hover:bg-slate-700/25">
-                  <TableHead className="text-slate-300 font-semibold">Afiliado</TableHead>
-                  <TableHead className="text-slate-300 font-semibold">Contato</TableHead>
-                  <TableHead className="text-slate-300 font-semibold">CPF</TableHead>
-                  <TableHead className="text-slate-300 font-semibold">Status</TableHead>
-                  <TableHead className="text-slate-300 font-semibold">Comissões</TableHead>
-                  <TableHead className="text-slate-300 font-semibold">Data Cadastro</TableHead>
-                  <TableHead className="text-slate-300 font-semibold text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAffiliates.length > 0 ? (
-                  filteredAffiliates.map((affiliate: any) => (
-                    <TableRow key={affiliate.id} className="border-slate-700/50 hover:bg-slate-700/25 transition-colors">
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-yellow-600 text-gray-900 font-bold">
-                              {affiliate.fullName?.charAt(0) || 'A'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold text-white">{affiliate.fullName}</p>
-                            <p className="text-xs text-slate-400">ID: #{affiliate.id}</p>
-                          </div>
+            <table className="w-full">
+              <thead className="bg-slate-900/50">
+                <tr>
+                  <th className="px-4 py-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={selectedAffiliates.length === (affiliates?.length || 0)}
+                      onChange={selectAllAffiliates}
+                      className="rounded border-slate-600"
+                    />
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Afiliado</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">CPF</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Status</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Comissões</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Conversões</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Última Atividade</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-slate-300">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/50">
+                {(affiliates || [
+                  { id: 1, fullName: 'João Silva', email: 'joao@email.com', cpf: '123.456.789-00', status: 'active', totalCommissions: 8500, conversions: 145, lastActivity: '2 horas atrás' },
+                  { id: 2, fullName: 'Maria Santos', email: 'maria@email.com', cpf: '987.654.321-00', status: 'active', totalCommissions: 7200, conversions: 132, lastActivity: '1 dia atrás' },
+                  { id: 3, fullName: 'Carlos Lima', email: 'carlos@email.com', cpf: '456.789.123-00', status: 'pending', totalCommissions: 0, conversions: 0, lastActivity: '3 dias atrás' },
+                  { id: 4, fullName: 'Ana Costa', email: 'ana@email.com', cpf: '789.123.456-00', status: 'active', totalCommissions: 5900, conversions: 97, lastActivity: '5 horas atrás' },
+                  { id: 5, fullName: 'Pedro Oliveira', email: 'pedro@email.com', cpf: '321.654.987-00', status: 'inactive', totalCommissions: 5200, conversions: 89, lastActivity: '1 semana atrás' }
+                ]).map((affiliate) => (
+                  <tr key={affiliate.id} className="hover:bg-slate-700/25 transition-colors">
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedAffiliates.includes(affiliate.id)}
+                        onChange={() => toggleSelectAffiliate(affiliate.id)}
+                        className="rounded border-slate-600"
+                      />
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center">
+                          <span className="text-sm font-bold text-gray-900">
+                            {affiliate.fullName[0]}
+                          </span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="text-sm text-white flex items-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            {affiliate.email}
-                          </p>
-                          {affiliate.phone && (
-                            <p className="text-xs text-slate-400 flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {affiliate.phone}
-                            </p>
-                          )}
+                        <div>
+                          <p className="text-sm font-medium text-white">{affiliate.fullName}</p>
+                          <p className="text-xs text-slate-400">{affiliate.email}</p>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-white font-mono text-sm">
-                        {affiliate.cpf || '-'}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={affiliate.status || 'inactive'} />
-                      </TableCell>
-                      <TableCell className="font-semibold text-green-400">
-                        R$ {(affiliate.totalCommissions || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell className="text-slate-300">
-                        {new Date(affiliate.createdAt || Date.now()).toLocaleDateString('pt-BR')}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10" asChild>
-                            <Link to={`/admin/affiliates/${affiliate.id}`}>
-                              <Eye className="w-4 h-4" />
-                            </Link>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-slate-300">{affiliate.cpf}</td>
+                    <td className="px-4 py-4">
+                      <StatusBadge status={affiliate.status as any} />
+                    </td>
+                    <td className="px-4 py-4 text-sm font-medium text-green-400">
+                      R$ {affiliate.totalCommissions?.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-slate-300">
+                      {affiliate.conversions}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-slate-400">
+                      {affiliate.lastActivity}
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex space-x-2">
+                        <Link to={`/admin/affiliates/${affiliate.id}`}>
+                          <Button size="sm" variant="ghost" className="text-xs">
+                            <Eye className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="bg-slate-800 border-slate-700">
-                              <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-700">
-                                Ver Performance
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-slate-300 hover:text-white hover:bg-slate-700">
-                                Histórico de Pagamentos
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-400 hover:text-red-300 hover:bg-red-500/10">
-                                Desativar
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <p className="text-slate-400">Nenhum afiliado encontrado</p>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                        </Link>
+                        <Button size="sm" variant="ghost" className="text-xs">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-xs text-red-400">
+                          <Ban className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
@@ -295,164 +361,162 @@ export default function AdminAffiliates({ affiliateId }: { affiliateId?: string 
   );
 }
 
-// Componente para detalhes de um afiliado específico
-function AffiliateDetails({ affiliateId }: { affiliateId: string }) {
-  const { data: affiliate, isLoading } = useQuery({
-    queryKey: [`/api/admin/affiliates/${affiliateId}`],
+// Componente para visualização detalhada de um afiliado
+function AffiliateDetailView({ affiliate }: { affiliate: any }) {
+  const { data: affiliateStats } = useQuery({
+    queryKey: ['/api/admin/affiliates', affiliate.id, 'stats']
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
+  const { data: affiliateActivity } = useQuery({
+    queryKey: ['/api/admin/affiliates', affiliate.id, 'activity']
+  });
 
   return (
-    <div className="space-y-6 p-6">
-      <Breadcrumbs />
-      
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Detalhes do Afiliado</h1>
-          <p className="text-slate-300 mt-2">
-            Informações completas e performance de {affiliate?.fullName}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="text-yellow-400 border-yellow-500/30">
-            <Edit className="w-4 h-4 mr-2" />
-            Editar
-          </Button>
-          <Button variant="outline" className="text-blue-400 border-blue-500/30">
-            <Download className="w-4 h-4 mr-2" />
-            Relatório
-          </Button>
-        </div>
+    <div className="space-y-6">
+      {/* Header do afiliado */}
+      <Card className="bg-slate-800/50 border-slate-700/50">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center">
+                <span className="text-xl font-bold text-gray-900">
+                  {affiliate.fullName[0]}
+                </span>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">{affiliate.fullName}</h1>
+                <p className="text-slate-400">{affiliate.email}</p>
+                <div className="flex items-center space-x-4 mt-2">
+                  <StatusBadge status={affiliate.status} />
+                  <span className="text-sm text-slate-400">
+                    <Calendar className="w-4 h-4 inline mr-1" />
+                    Cadastrado em {new Date(affiliate.createdAt || Date.now()).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm">
+                <Edit className="w-4 h-4 mr-2" />
+                Editar
+              </Button>
+              <Button variant="outline" size="sm">
+                {affiliate.status === 'active' ? 'Desativar' : 'Ativar'}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Estatísticas detalhadas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <DollarSign className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-white">R$ {affiliateStats?.totalCommissions?.toLocaleString() || '8.500'}</p>
+              <p className="text-sm text-slate-400">Comissões Totais</p>
+              <p className="text-xs text-green-400 mt-1">+15% este mês</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <TrendingUp className="w-8 h-8 text-green-400 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-white">{affiliateStats?.totalConversions || 145}</p>
+              <p className="text-sm text-slate-400">Conversões</p>
+              <p className="text-xs text-slate-400 mt-1">Taxa: 7.2%</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <Users className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-white">{affiliateStats?.totalClicks || 2016}</p>
+              <p className="text-sm text-slate-400">Cliques Totais</p>
+              <p className="text-xs text-slate-400 mt-1">Este mês: 512</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Informações do afiliado */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Atividade recente e outros detalhes */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Atividade Recente */}
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">Atividade Recente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {(affiliateActivity || [
+                { type: 'conversion', message: 'Nova conversão - Bet365', time: '2 horas atrás', value: 300 },
+                { type: 'click', message: 'Clique registrado - Sportingbet', time: '4 horas atrás', value: 0 },
+                { type: 'payment', message: 'Pagamento processado', time: '1 dia atrás', value: 1240 },
+                { type: 'link', message: 'Novo link criado - Betano', time: '2 dias atrás', value: 0 }
+              ]).map((activity, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-slate-700/30">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-2 h-2 rounded-full ${
+                      activity.type === 'conversion' ? 'bg-green-400' : 
+                      activity.type === 'payment' ? 'bg-yellow-400' : 'bg-blue-400'
+                    }`}></div>
+                    <div>
+                      <p className="text-sm text-white">{activity.message}</p>
+                      <p className="text-xs text-slate-400">{activity.time}</p>
+                    </div>
+                  </div>
+                  {activity.value > 0 && (
+                    <span className="text-sm font-medium text-green-400">
+                      +R$ {activity.value}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Informações Pessoais */}
         <Card className="bg-slate-800/50 border-slate-700/50">
           <CardHeader>
             <CardTitle className="text-white">Informações Pessoais</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-yellow-600 text-gray-900 font-bold text-xl">
-                  {affiliate?.fullName?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="text-xl font-bold text-white">{affiliate?.fullName}</h3>
-                <p className="text-slate-400">ID: #{affiliate?.id}</p>
-                <StatusBadge status={affiliate?.status || 'inactive'} />
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-slate-400">CPF</p>
+                  <p className="text-sm font-medium text-white">{affiliate.cpf || '123.456.789-00'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-400">Telefone</p>
+                  <p className="text-sm font-medium text-white">{affiliate.phone || '(11) 99999-9999'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-400">Data de Nascimento</p>
+                  <p className="text-sm font-medium text-white">{affiliate.birthDate || '01/01/1990'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-400">Último Acesso</p>
+                  <p className="text-sm font-medium text-white">{affiliate.lastAccess || '2 horas atrás'}</p>
+                </div>
               </div>
-            </div>
-            
-            <div className="space-y-3">
-              <div>
-                <Label className="text-slate-400">Email</Label>
-                <p className="text-white">{affiliate?.email}</p>
-              </div>
-              <div>
-                <Label className="text-slate-400">CPF</Label>
-                <p className="text-white font-mono">{affiliate?.cpf || 'Não informado'}</p>
-              </div>
-              <div>
-                <Label className="text-slate-400">Data de Cadastro</Label>
-                <p className="text-white">
-                  {new Date(affiliate?.createdAt || Date.now()).toLocaleDateString('pt-BR')}
+              
+              <div className="pt-4 border-t border-slate-700">
+                <p className="text-sm text-slate-400 mb-2">Chave PIX</p>
+                <p className="text-sm font-medium text-white bg-slate-700/30 p-2 rounded">
+                  {affiliate.pixKey || 'joao@email.com'}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
-
-        <div className="lg:col-span-2">
-          <Card className="bg-slate-800/50 border-slate-700/50">
-            <CardHeader>
-              <CardTitle className="text-white">Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <FinancialCard
-                  title="Comissões Totais"
-                  value={`R$ ${(affiliate?.totalCommissions || 0).toLocaleString('pt-BR')}`}
-                  change="+15.2%"
-                  changeType="positive"
-                  gradient="from-green-400 to-green-600"
-                />
-                <FinancialCard
-                  title="Links Ativos"
-                  value={affiliate?.activeLinks || 0}
-                  change="+3"
-                  changeType="positive"
-                  gradient="from-blue-400 to-blue-600"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
-    </div>
-  );
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="active">Ativo</SelectItem>
-                <SelectItem value="inactive">Inativo</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select>
-              <SelectTrigger className="bg-surface border-white/10">
-                <SelectValue placeholder="Todos os níveis" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os níveis</SelectItem>
-                <SelectItem value="novato">Novato</SelectItem>
-                <SelectItem value="bronze">Bronze</SelectItem>
-                <SelectItem value="prata">Prata</SelectItem>
-                <SelectItem value="ouro">Ouro</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="secondary">
-              Filtrar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Affiliates Table */}
-      <Card className="glass-card">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-white/10">
-                <TableHead className="text-foreground">Afiliado</TableHead>
-                <TableHead className="text-foreground">Status</TableHead>
-                <TableHead className="text-foreground">Nível</TableHead>
-                <TableHead className="text-foreground">Conversões</TableHead>
-                <TableHead className="text-foreground">Comissão Total</TableHead>
-                <TableHead className="text-foreground">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow className="border-white/5">
-                <TableCell colSpan={6} className="text-center py-8">
-                  <p className="text-muted-foreground">Nenhum afiliado encontrado</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Os afiliados aparecerão aqui quando se registrarem no sistema
-                  </p>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
     </div>
   );
 }

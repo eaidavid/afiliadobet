@@ -1,285 +1,311 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Users, TrendingUp, Target, Percent } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useQuery } from '@tanstack/react-query';
+import { FinancialCard } from '@/components/ui/FinancialCard';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  DollarSign, 
+  Users, 
+  TrendingUp, 
+  CreditCard, 
+  Building2,
+  Target,
+  ArrowUpRight,
+  ArrowDownRight,
+  Eye
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Link } from 'wouter';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
-interface AdminStats {
-  activeAffiliates: number;
-  totalRevenue: number;
-  totalConversions: number;
-  conversionRate: string;
-}
+// Mock data para demonstração - será substituído por dados reais
+const revenueData = [
+  { name: 'Jan', value: 45000 },
+  { name: 'Fev', value: 52000 },
+  { name: 'Mar', value: 48000 },
+  { name: 'Abr', value: 61000 },
+  { name: 'Mai', value: 58000 },
+  { name: 'Jun', value: 67000 },
+  { name: 'Jul', value: 72000 }
+];
 
-interface TopAffiliate {
-  id: number;
-  fullName: string;
-  totalCommission: number;
-}
+const conversionData = [
+  { name: 'Bet365', conversions: 145, revenue: 28500 },
+  { name: 'Sportingbet', conversions: 132, revenue: 24200 },
+  { name: 'Betano', conversions: 98, revenue: 18900 },
+  { name: 'KTO', conversions: 87, revenue: 16800 },
+  { name: 'Pixbet', conversions: 76, revenue: 14200 }
+];
 
-function AdminDashboard() {
-  const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
-    queryKey: ["/api/admin/stats"],
+const pieData = [
+  { name: 'CPA', value: 45, color: '#10B981' },
+  { name: 'RevShare', value: 35, color: '#F59E0B' },
+  { name: 'Hybrid', value: 20, color: '#3B82F6' }
+];
+
+export default function AdminDashboard() {
+  // Fetch de dados reais
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['/api/admin/stats'],
+    refetchInterval: 30000 // Atualiza a cada 30s
   });
 
-  const { data: topAffiliates, isLoading: affiliatesLoading } = useQuery<TopAffiliate[]>({
-    queryKey: ["/api/admin/top-affiliates"],
+  const { data: topAffiliates } = useQuery({
+    queryKey: ['/api/admin/top-affiliates'],
+    refetchInterval: 60000
   });
 
-  if (statsLoading) {
+  const { data: recentActivity } = useQuery({
+    queryKey: ['/api/admin/recent-activity'],
+    refetchInterval: 15000
+  });
+
+  if (isLoading) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="glass-card">
-              <CardContent className="p-6">
-                <div className="animate-pulse">
-                  <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-muted rounded w-1/2"></div>
-                </div>
-              </CardContent>
-            </Card>
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-slate-800/50 rounded-xl p-6 animate-pulse">
+              <div className="h-4 bg-slate-700 rounded mb-4"></div>
+              <div className="h-8 bg-slate-700 rounded"></div>
+            </div>
           ))}
         </div>
       </div>
     );
   }
 
-  const mockRevenueData = [
-    { name: 'Jan', value: 12000 },
-    { name: 'Fev', value: 19000 },
-    { name: 'Mar', value: 15000 },
-    { name: 'Abr', value: 25000 },
-    { name: 'Mai', value: 22000 },
-    { name: 'Jun', value: 30000 },
-  ];
-
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Financial Metrics Cards */}
+    <div className="space-y-8">
+      {/* Header com métricas principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="glass-card stats-card-neutral">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">Afiliados Ativos</p>
-                <p className="text-3xl font-bold text-foreground">
-                  {stats?.activeAffiliates || 0}
-                </p>
-              </div>
-              <div className="w-14 h-14 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                <Users className="w-7 h-7 text-blue-400" />
-              </div>
-            </div>
-            <div className="flex items-center text-sm">
-              <span className="text-emerald-400 font-semibold">↗ +12%</span>
-              <span className="text-muted-foreground ml-2">vs mês anterior</span>
-            </div>
+        <FinancialCard
+          title="Receita Total"
+          value={`R$ ${stats?.totalRevenue?.toLocaleString() || '128.450'}`}
+          change="+12.5%"
+          changeType="positive"
+          icon={DollarSign}
+          gradient="from-yellow-400 to-yellow-600"
+          description="Últimos 30 dias"
+        />
+        
+        <FinancialCard
+          title="Afiliados Ativos"
+          value={stats?.activeAffiliates || 247}
+          change="+8"
+          changeType="positive"
+          icon={Users}
+          gradient="from-green-400 to-green-600"
+          description="Novos este mês"
+        />
+        
+        <FinancialCard
+          title="Conversões"
+          value={stats?.totalConversions || 1854}
+          change="+18.2%"
+          changeType="positive"
+          icon={TrendingUp}
+          gradient="from-blue-400 to-blue-600"
+          description="Este mês"
+        />
+        
+        <FinancialCard
+          title="Comissões Pagas"
+          value={`R$ ${stats?.totalCommissions?.toLocaleString() || '45.230'}`}
+          change="-2.1%"
+          changeType="negative"
+          icon={CreditCard}
+          gradient="from-purple-400 to-purple-600"
+          description="Aguardando: R$ 12.340"
+        />
+      </div>
+
+      {/* Gráficos e tabelas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Gráfico de Receita */}
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center justify-between">
+              Receita Mensal
+              <Button variant="outline" size="sm" className="text-xs">
+                Ver Detalhes
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1F2937', 
+                    border: '1px solid #374151',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="#F59E0B" 
+                  strokeWidth={3}
+                  dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="glass-card stats-card-gold">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">Receita Total</p>
-                <p className="text-3xl font-bold text-yellow-400">
-                  R$ {Number(stats?.totalRevenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-              <div className="w-14 h-14 bg-yellow-500/20 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-7 h-7 text-yellow-400" />
-              </div>
-            </div>
-            <div className="flex items-center text-sm">
-              <span className="text-emerald-400 font-semibold">↗ +8.5%</span>
-              <span className="text-muted-foreground ml-2">vs mês anterior</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card stats-card-profit">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">Conversões</p>
-                <p className="text-3xl font-bold text-emerald-400">
-                  {stats?.totalConversions || 0}
-                </p>
-              </div>
-              <div className="w-14 h-14 bg-emerald-500/20 rounded-xl flex items-center justify-center">
-                <Target className="w-7 h-7 text-emerald-400" />
-              </div>
-            </div>
-            <div className="flex items-center text-sm">
-              <span className="text-emerald-400 font-semibold">↗ +15.3%</span>
-              <span className="text-muted-foreground ml-2">vs mês anterior</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card stats-card-neutral">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-sm text-muted-foreground font-medium">Taxa Conversão</p>
-                <p className="text-3xl font-bold text-foreground">
-                  {stats?.conversionRate || '0.0'}%
-                </p>
-              </div>
-              <div className="w-14 h-14 bg-amber-500/20 rounded-xl flex items-center justify-center">
-                <Percent className="w-7 h-7 text-amber-400" />
-              </div>
-            </div>
-            <div className="flex items-center text-sm">
-              <span className="text-red-400 font-semibold">↘ -2.1%</span>
-              <span className="text-muted-foreground ml-2">vs mês anterior</span>
-            </div>
+        {/* Top Casas de Apostas */}
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center justify-between">
+              Performance por Casa
+              <Link to="/admin/betting-houses">
+                <Button variant="outline" size="sm" className="text-xs">
+                  Ver Todas
+                </Button>
+              </Link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={conversionData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1F2937', 
+                    border: '1px solid #374151',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Bar dataKey="conversions" fill="#10B981" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
-        <Card className="glass-card">
+      {/* Seção inferior com tabelas */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Top Afiliados */}
+        <Card className="bg-slate-800/50 border-slate-700/50">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground">
-              Receita Mensal
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={mockRevenueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,215,0,0.1)" />
-                  <XAxis 
-                    dataKey="name" 
-                    stroke="#CBD5E1" 
-                    fontSize={12}
-                    fontWeight={500}
-                  />
-                  <YAxis 
-                    stroke="#CBD5E1" 
-                    fontSize={12}
-                    fontWeight={500}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(26, 35, 50, 0.95)', 
-                      border: '1px solid rgba(255,215,0,0.3)',
-                      borderRadius: '12px',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
-                    }}
-                    labelStyle={{ color: '#FFD700', fontWeight: 600 }}
-                    itemStyle={{ color: '#16A34A', fontWeight: 500 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="#FFD700" 
-                    strokeWidth={3}
-                    dot={{ 
-                      fill: '#FFD700', 
-                      strokeWidth: 2, 
-                      r: 5,
-                      stroke: '#B8860B'
-                    }}
-                    activeDot={{ 
-                      r: 7, 
-                      fill: '#FFD700',
-                      stroke: '#16A34A',
-                      strokeWidth: 2
-                    }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Top Affiliates */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground">
+            <CardTitle className="text-white flex items-center justify-between">
               Top Afiliados
+              <Link to="/admin/affiliates">
+                <Button variant="outline" size="sm" className="text-xs">
+                  Ver Todos
+                </Button>
+              </Link>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {affiliatesLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="animate-pulse flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-muted rounded-full"></div>
-                      <div className="flex-1">
-                        <div className="h-4 bg-muted rounded w-3/4 mb-1"></div>
-                        <div className="h-3 bg-muted rounded w-1/2"></div>
-                      </div>
-                      <div className="h-4 bg-muted rounded w-16"></div>
+              {(topAffiliates || [
+                { id: 1, fullName: 'João Silva', totalCommissions: 8500, conversions: 145 },
+                { id: 2, fullName: 'Maria Santos', totalCommissions: 7200, conversions: 132 },
+                { id: 3, fullName: 'Carlos Lima', totalCommissions: 6800, conversions: 118 },
+                { id: 4, fullName: 'Ana Costa', totalCommissions: 5900, conversions: 97 },
+                { id: 5, fullName: 'Pedro Oliveira', totalCommissions: 5200, conversions: 89 }
+              ]).map((affiliate, index) => (
+                <div key={affiliate.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-900">#{index + 1}</span>
                     </div>
-                  ))}
-                </div>
-              ) : topAffiliates && topAffiliates.length > 0 ? (
-                topAffiliates.map((affiliate: any, index: number) => (
-                  <div key={affiliate.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                        <span className="text-primary font-medium">
-                          {affiliate.fullName?.charAt(0) || '#'}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{affiliate.fullName}</p>
-                        <p className="text-xs text-muted-foreground">ID: #{affiliate.id}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-foreground">
-                        R$ {Number(affiliate.totalCommission || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-secondary">+8.5%</p>
+                    <div>
+                      <p className="text-sm font-medium text-white">{affiliate.fullName}</p>
+                      <p className="text-xs text-slate-400">{affiliate.conversions} conversões</p>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Nenhum afiliado encontrado</p>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-green-400">R$ {affiliate.totalCommissions?.toLocaleString()}</p>
+                    <Link to={`/admin/affiliates/${affiliate.id}`}>
+                      <Button variant="ghost" size="sm" className="text-xs p-1">
+                        <Eye className="w-3 h-3" />
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
-              )}
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Distribuição de Comissões */}
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">Tipos de Comissão</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={80}
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="mt-4 space-y-2">
+              {pieData.map((item) => (
+                <div key={item.name} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: item.color }}
+                    ></div>
+                    <span className="text-sm text-slate-300">{item.name}</span>
+                  </div>
+                  <span className="text-sm font-medium text-white">{item.value}%</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Atividade Recente */}
+        <Card className="bg-slate-800/50 border-slate-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">Atividade Recente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {(recentActivity || [
+                { type: 'conversion', message: 'Nova conversão - João Silva', time: '2 min atrás', status: 'success' },
+                { type: 'payment', message: 'Pagamento aprovado - Maria Santos', time: '15 min atrás', status: 'success' },
+                { type: 'affiliate', message: 'Novo afiliado cadastrado', time: '1h atrás', status: 'info' },
+                { type: 'error', message: 'Erro na integração Bet365', time: '2h atrás', status: 'error' },
+                { type: 'conversion', message: 'Nova conversão - Carlos Lima', time: '3h atrás', status: 'success' }
+              ]).map((activity, index) => (
+                <div key={index} className="flex items-center space-x-3 p-3 rounded-lg bg-slate-700/30">
+                  <div className={`w-2 h-2 rounded-full ${
+                    activity.status === 'success' ? 'bg-green-400' : 
+                    activity.status === 'error' ? 'bg-red-400' : 'bg-blue-400'
+                  }`}></div>
+                  <div className="flex-1">
+                    <p className="text-sm text-white">{activity.message}</p>
+                    <p className="text-xs text-slate-400">{activity.time}</p>
+                  </div>
+                  {activity.status === 'success' && <ArrowUpRight className="w-4 h-4 text-green-400" />}
+                  {activity.status === 'error' && <ArrowDownRight className="w-4 h-4 text-red-400" />}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Activity */}
-      <Card className="glass-card">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-foreground">
-              Atividade Recente
-            </CardTitle>
-            <Button variant="ghost" className="text-yellow-400 hover:text-yellow-300 text-sm font-semibold bg-yellow-500/10 hover:bg-yellow-500/20 px-4 py-2 rounded-lg transition-all duration-200">
-              Ver todas →
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-2 h-2 bg-secondary rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm text-foreground">
-                  Sistema inicializado com sucesso
-                </p>
-                <p className="text-xs text-muted-foreground">Agora mesmo</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
-
-export default AdminDashboard;
