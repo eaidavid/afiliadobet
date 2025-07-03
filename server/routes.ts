@@ -1106,11 +1106,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/postback-test", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      // Test postback
-      res.json({ success: true, message: "Teste realizado com sucesso" });
+      const { token, type, testData, urls } = req.body;
+      
+      // Verificar se o token existe
+      const houses = await storage.getBettingHouses();
+      const house = houses.find(h => h.postbackToken === token);
+      
+      if (!house) {
+        return res.json({ 
+          success: false, 
+          message: "Token de postback não encontrado",
+          details: `Token '${token}' não está associado a nenhuma casa de apostas`
+        });
+      }
+
+      // Simular o teste de postback
+      console.log(`Teste de postback - Casa: ${house.name}, Tipo: ${type}, Token: ${token}`);
+      console.log('Dados de teste:', testData);
+      console.log('URLs:', urls);
+
+      // Validar dados de teste baseado no tipo
+      const validationErrors = [];
+      
+      if (type === 'registration') {
+        if (!testData.affid) validationErrors.push('affid é obrigatório');
+        if (!testData.customer_id) validationErrors.push('customer_id é obrigatório');
+        if (!testData.email) validationErrors.push('email é obrigatório');
+      } else if (type === 'deposit') {
+        if (!testData.affid) validationErrors.push('affid é obrigatório');
+        if (!testData.customer_id) validationErrors.push('customer_id é obrigatório');
+        if (!testData.amount) validationErrors.push('amount é obrigatório');
+      }
+
+      if (validationErrors.length > 0) {
+        return res.json({ 
+          success: false, 
+          message: "Dados de teste inválidos",
+          details: validationErrors.join(', ')
+        });
+      }
+
+      // Simular sucesso do teste
+      const testResult = {
+        success: true,
+        message: `Teste de ${type} executado com sucesso para a casa ${house.name}`,
+        details: {
+          casa: house.name,
+          token: token,
+          tipo: type,
+          url_testada: urls[type],
+          dados_enviados: testData,
+          comissao_simulada: type === 'registration' 
+            ? `R$ ${house.baseCpaCommission}` 
+            : `${house.baseRevSharePercent}% de R$ ${testData.amount}`,
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      res.json(testResult);
     } catch (error) {
       console.error("Error testing postback:", error);
-      res.status(500).json({ success: false, message: "Erro no teste" });
+      res.status(500).json({ 
+        success: false, 
+        message: "Erro interno no teste",
+        details: error.message 
+      });
     }
   });
 
@@ -1131,7 +1191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verificar se já existe link para esta casa
       const existingLinks = await storage.getAffiliateLinks(user.id);
-      const existingLink = existingLinks.find(link => link.houseId === houseId);
+      const existingLink = existingLinks.find(link => link.bettingHouseId === houseId);
       
       if (existingLink) {
         return res.json({
@@ -1149,12 +1209,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Criar novo link
       const newLink = await storage.createAffiliateLink({
         userId: user.id,
-        houseId,
+        bettingHouseId: houseId,
         linkCode,
-        fullUrl: affiliateLink,
-        clickCount: 0,
-        conversionCount: 0,
-        commissionEarned: '0'
+        fullUrl: affiliateLink
       });
 
       res.json({
@@ -1181,7 +1238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Enriquecer com dados das casas de apostas
       const enrichedLinks = await Promise.all(links.map(async (link) => {
-        const house = await storage.getBettingHouse(link.houseId);
+        const house = await storage.getBettingHouse(link.bettingHouseId);
         return {
           ...link,
           house: house ? {

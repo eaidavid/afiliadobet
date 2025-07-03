@@ -39,6 +39,7 @@ export default function PostbackGenerator() {
     amount: '100.00',
     currency: 'BRL'
   });
+  const [testResults, setTestResults] = useState<any>(null);
 
   // Query para casas de apostas
   const { data: bettingHouses, isLoading } = useQuery({
@@ -69,17 +70,27 @@ export default function PostbackGenerator() {
     }
   });
 
-  // Mutation para testar postback
+  // Mutation para testar postback específico
   const testPostbackMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/admin/postback-test', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: async (data: any) => {
+      return apiRequest('/api/admin/postback-test', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+    },
     onSuccess: (result: any) => {
+      setTestResults(result);
       toast({
         title: result.success ? "Teste bem-sucedido!" : "Teste falhou",
         description: result.message,
         variant: result.success ? "default" : "destructive"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro no teste",
+        description: error.message || "Erro ao executar teste",
+        variant: "destructive"
       });
     }
   });

@@ -126,6 +126,12 @@ Changelog:
 - July 02, 2025. Campo CPF adicionado para mercado brasileiro
 - July 02, 2025. Erro SQL corrigido no método getAffiliatePerformance
 - July 02, 2025. Guia completo de implementação de rotas criado (IMPLEMENTACAO_ROTAS.md)
+- July 03, 2025. Sistema de postbacks dinâmicos implementado com tokens únicos por casa
+- July 03, 2025. Geração de links usando username como affid parameter
+- July 03, 2025. APIs de pagamentos administrativos com aprovação/rejeição
+- July 03, 2025. Formulário completo de casas de apostas com configurações avançadas
+- July 03, 2025. Gerador de teste específico para postbacks por casa
+- July 03, 2025. Rotas específicas /api/postback/{TOKEN}/registration e /api/postback/{TOKEN}/deposit
 ```
 
 ## User Preferences

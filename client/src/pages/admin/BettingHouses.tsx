@@ -1,626 +1,383 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import { 
   Building2, 
   Plus, 
-  Edit, 
-  Trash2, 
-  Eye,
-  Settings,
-  DollarSign,
+  Search, 
+  Filter, 
+  DollarSign, 
+  Users, 
   TrendingUp,
-  Users,
-  BarChart3,
-  Search,
-  Filter,
-  RefreshCw,
-  Download,
+  Edit,
+  Trash2,
+  Eye,
   ExternalLink,
-  Star,
-  CheckCircle,
-  XCircle
+  MoreHorizontal,
+  Zap,
+  Globe,
+  Shield
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { StatusBadge } from '@/components/ui/StatusBadge';
-import { BettingHouseForm } from '@/components/BettingHouseForm';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import AdminLayout from '@/components/AdminLayout';
+import { ImprovedBettingHouseForm } from '@/components/ImprovedBettingHouseForm';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
-export default function BettingHouses({ editId }: { editId?: string }) {
+export default function BettingHousesFixed({ editId }: { editId?: string }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editHouse, setEditHouse] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; house: any }>({ open: false, house: null });
 
   // Query para casas de apostas
-  const { data: bettingHouses, isLoading, refetch } = useQuery({
-    queryKey: ['/api/admin/betting-houses', { search: searchTerm, status: statusFilter }]
+  const { data: houses = [], isLoading } = useQuery({
+    queryKey: ['/api/betting-houses']
   });
 
-  // Query para casa específica (se editId fornecido)
-  const { data: houseDetails } = useQuery({
-    queryKey: ['/api/admin/betting-houses', editId],
-    enabled: !!editId
+  // Query para estatísticas
+  const { data: stats = {} } = useQuery({
+    queryKey: ['/api/admin/stats']
   });
 
-  // Query para estatísticas das casas
-  const { data: housesStats } = useQuery({
-    queryKey: ['/api/admin/betting-houses/stats']
-  });
-
-  // Mutation para criar casa
-  const createHouseMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/admin/betting-houses', {
-      method: 'POST',
-      body: data
-    }),
+  // Mutation para deletar casa
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest(`/api/admin/betting-houses/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/betting-houses'] });
       toast({
-        title: "Casa criada com sucesso!",
-        description: "A nova casa de apostas foi adicionada ao sistema.",
+        title: "Casa deletada",
+        description: "Casa de apostas removida com sucesso",
       });
-      setShowCreateModal(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/betting-houses'] });
+      setDeleteDialog({ open: false, house: null });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
-        title: "Erro ao criar casa",
-        description: "Tente novamente mais tarde.",
+        title: "Erro",
+        description: error.message || "Erro ao deletar casa",
         variant: "destructive"
       });
     }
   });
 
-  // Mutation para deletar casa
-  const deleteHouseMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/admin/betting-houses/${id}`, {
-      method: 'DELETE'
-    }),
-    onSuccess: () => {
-      toast({
-        title: "Casa removida",
-        description: "Casa de apostas removida com sucesso.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/betting-houses'] });
-    }
-  });
-
-  if (editId && houseDetails) {
-    return <BettingHouseEditView house={houseDetails} />;
-  }
-
-  if (isLoading) {
+  // Se houver editId, mostrar formulário de edição
+  if (editId) {
+    const houseToEdit = houses.find((h: any) => h.id.toString() === editId);
+    
     return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-slate-800/50 rounded-xl p-6 animate-pulse">
-              <div className="h-4 bg-slate-700 rounded mb-4"></div>
-              <div className="h-8 bg-slate-700 rounded"></div>
-            </div>
-          ))}
+      <AdminLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Button variant="outline" onClick={() => window.history.back()}>
+              Voltar à Lista
+            </Button>
+          </div>
+
+          <ImprovedBettingHouseForm 
+            open={true}
+            onOpenChange={() => window.history.back()}
+            editData={houseToEdit}
+            mode="edit"
+          />
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Gerenciar Casas de Apostas</h1>
-          <p className="text-slate-400">Configure e monitore as casas de apostas parceiras</p>
-        </div>
-        <Button 
-          onClick={() => setShowCreateModal(true)}
-          className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-gray-900 hover:from-yellow-500 hover:to-yellow-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Casa
-        </Button>
-      </div>
-
-      {/* Estatísticas gerais */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Total de Casas</p>
-                <p className="text-2xl font-bold text-white">{housesStats?.totalHouses || 12}</p>
-              </div>
-              <Building2 className="w-8 h-8 text-blue-400" />
-            </div>
-            <p className="text-xs text-green-400 mt-2">+2 este mês</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Casas Ativas</p>
-                <p className="text-2xl font-bold text-white">{housesStats?.activeHouses || 10}</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-green-400" />
-            </div>
-            <p className="text-xs text-slate-400 mt-2">83% do total</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Receita Total</p>
-                <p className="text-2xl font-bold text-white">R$ {housesStats?.totalRevenue?.toLocaleString() || '485.720'}</p>
-              </div>
-              <DollarSign className="w-8 h-8 text-yellow-400" />
-            </div>
-            <p className="text-xs text-green-400 mt-2">+15% vs mês passado</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800/50 border-slate-700/50">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Taxa Média</p>
-                <p className="text-2xl font-bold text-white">{housesStats?.averageConversionRate || '7.8'}%</p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-purple-400" />
-            </div>
-            <p className="text-xs text-slate-400 mt-2">Conversão geral</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filtros */}
-      <Card className="bg-slate-800/50 border-slate-700/50">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Busca */}
-            <div className="md:col-span-2 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Buscar casa de apostas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-slate-900/50 border-slate-600 pl-10"
-              />
-            </div>
-
-            {/* Status */}
-            <div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="bg-slate-900/50 border-slate-600">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="active">Ativas</SelectItem>
-                  <SelectItem value="inactive">Inativas</SelectItem>
-                  <SelectItem value="pending">Pendentes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Ações */}
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Grid de casas de apostas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {(bettingHouses || [
-          {
-            id: 1,
-            name: 'Bet365',
-            description: 'A maior casa de apostas do mundo com as melhores odds.',
-            logoUrl: '',
-            commissionType: 'CPA',
-            commissionValue: 150,
-            isActive: true,
-            affiliatesCount: 45,
-            totalRevenue: 125000,
-            conversionRate: 8.5,
-            rating: 4.8,
-            categories: ['sports', 'casino'],
-            createdAt: '2024-01-15'
-          },
-          {
-            id: 2,
-            name: 'Sportingbet',
-            description: 'Casa tradicional com foco em esportes.',
-            logoUrl: '',
-            commissionType: 'RevShare',
-            commissionValue: 35,
-            isActive: true,
-            affiliatesCount: 38,
-            totalRevenue: 95000,
-            conversionRate: 7.2,
-            rating: 4.6,
-            categories: ['sports'],
-            createdAt: '2024-01-20'
-          },
-          {
-            id: 3,
-            name: 'Betano',
-            description: 'Casa moderna com app intuitivo.',
-            logoUrl: '',
-            commissionType: 'Hybrid',
-            commissionValue: 200,
-            isActive: true,
-            affiliatesCount: 52,
-            totalRevenue: 142000,
-            conversionRate: 9.1,
-            rating: 4.7,
-            categories: ['sports', 'casino'],
-            createdAt: '2024-02-01'
-          },
-          {
-            id: 4,
-            name: 'KTO',
-            description: 'Casa brasileira com foco nacional.',
-            logoUrl: '',
-            commissionType: 'CPA',
-            commissionValue: 120,
-            isActive: true,
-            affiliatesCount: 29,
-            totalRevenue: 68000,
-            conversionRate: 6.8,
-            rating: 4.4,
-            categories: ['sports'],
-            createdAt: '2024-02-10'
-          },
-          {
-            id: 5,
-            name: 'Pixbet',
-            description: 'Saque rápido via PIX.',
-            logoUrl: '',
-            commissionType: 'RevShare',
-            commissionValue: 30,
-            isActive: false,
-            affiliatesCount: 23,
-            totalRevenue: 45000,
-            conversionRate: 5.9,
-            rating: 4.2,
-            categories: ['sports', 'casino'],
-            createdAt: '2024-02-15'
-          },
-          {
-            id: 6,
-            name: 'Parimatch',
-            description: 'Casa internacional com grandes apostas.',
-            logoUrl: '',
-            commissionType: 'CPA',
-            commissionValue: 180,
-            isActive: true,
-            affiliatesCount: 31,
-            totalRevenue: 89000,
-            conversionRate: 8.3,
-            rating: 4.6,
-            categories: ['sports', 'casino'],
-            createdAt: '2024-03-01'
-          }
-        ]).map((house) => (
-          <Card key={house.id} className="bg-slate-800/50 border-slate-700/50 hover:border-slate-600/50 transition-all duration-200">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-gray-900" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-white text-lg">{house.name}</CardTitle>
-                    <div className="flex items-center space-x-1 mt-1">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-sm text-slate-300">{house.rating}</span>
-                    </div>
-                  </div>
-                </div>
-                <StatusBadge status={house.isActive ? 'active' : 'inactive'} />
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-4">
-              <p className="text-sm text-slate-400 line-clamp-2">
-                {house.description}
-              </p>
-
-              {/* Métricas principais */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-slate-700/30 rounded-lg">
-                  <DollarSign className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
-                  <p className="text-sm font-bold text-white">
-                    {house.commissionType === 'RevShare' ? `${house.commissionValue}%` : `R$ ${house.commissionValue}`}
-                  </p>
-                  <p className="text-xs text-slate-400">{house.commissionType}</p>
-                </div>
-                
-                <div className="text-center p-3 bg-slate-700/30 rounded-lg">
-                  <TrendingUp className="w-5 h-5 text-green-400 mx-auto mb-1" />
-                  <p className="text-sm font-bold text-white">{house.conversionRate}%</p>
-                  <p className="text-xs text-slate-400">Conversão</p>
-                </div>
-              </div>
-
-              {/* Informações detalhadas */}
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Afiliados:</span>
-                  <span className="text-white">{house.affiliatesCount}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Receita:</span>
-                  <span className="text-green-400">R$ {house.totalRevenue?.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Criada em:</span>
-                  <span className="text-white">{new Date(house.createdAt).toLocaleDateString()}</span>
-                </div>
-              </div>
-
-              {/* Categorias */}
-              <div className="flex space-x-1">
-                {house.categories.map((category) => (
-                  <Badge key={category} variant="outline" className="text-xs">
-                    {category === 'sports' ? 'Esportes' : 'Cassino'}
-                  </Badge>
-                ))}
-              </div>
-
-              {/* Ações */}
-              <div className="flex space-x-2">
-                <Button size="sm" variant="outline" className="flex-1">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver
-                </Button>
-                <Button size="sm" variant="outline">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button size="sm" variant="outline">
-                  <Settings className="w-4 h-4" />
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="text-red-400 hover:text-red-300"
-                  onClick={() => deleteHouseMutation.mutate(house.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Modal de criação */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-white">Adicionar Nova Casa de Apostas</DialogTitle>
-          </DialogHeader>
-          <CreateHouseForm 
-            onSubmit={(data) => createHouseMutation.mutate(data)}
-            isLoading={createHouseMutation.isPending}
-          />
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-// Componente para formulário de criação
-function CreateHouseForm({ onSubmit, isLoading }: { 
-  onSubmit: (data: any) => void; 
-  isLoading: boolean;
-}) {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    baseUrl: '',
-    commissionType: 'CPA',
-    commissionValue: '',
-    categories: [] as string[],
-    minimumDeposit: '',
-    logoUrl: ''
+  // Filtros
+  const filteredHouses = houses.filter((house: any) => {
+    const matchesSearch = house.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         house.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || house.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      ...formData,
-      commissionValue: parseFloat(formData.commissionValue),
-      minimumDeposit: parseFloat(formData.minimumDeposit)
-    });
-  };
-
-  const toggleCategory = (category: string) => {
-    setFormData(prev => ({
-      ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter(c => c !== category)
-        : [...prev.categories, category]
-    }));
-  };
+  const categories = ['all', 'sports', 'casino', 'poker', 'esports', 'lottery', 'fantasy'];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-h-96 overflow-y-auto">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label className="text-slate-300">Nome da Casa</Label>
-          <Input
-            placeholder="Ex: Bet365"
-            value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            className="bg-slate-900/50 border-slate-600"
-            required
-          />
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Casas de Apostas</h1>
+            <p className="text-muted-foreground">Gerencie as casas de apostas e suas configurações</p>
+          </div>
+          <Button onClick={() => setShowCreateModal(true)} className="bg-primary hover:bg-primary/90">
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Casa
+          </Button>
         </div>
 
-        <div>
-          <Label className="text-slate-300">URL Base</Label>
-          <Input
-            placeholder="https://bet365.com"
-            value={formData.baseUrl}
-            onChange={(e) => setFormData(prev => ({ ...prev, baseUrl: e.target.value }))}
-            className="bg-slate-900/50 border-slate-600"
-            required
-          />
+        {/* Estatísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Casas</CardTitle>
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalHouses || houses.length}</div>
+              <p className="text-xs text-muted-foreground">
+                +2 desde o mês passado
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Casas Ativas</CardTitle>
+              <Zap className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.activeHouses || houses.filter((h: any) => h.isActive).length}</div>
+              <p className="text-xs text-muted-foreground">
+                Operando normalmente
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">R$ {stats.totalRevenue || '125,430'}</div>
+              <p className="text-xs text-muted-foreground">
+                +20.1% desde o mês passado
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.averageConversionRate || '3.2'}%</div>
+              <p className="text-xs text-muted-foreground">
+                +0.4% desde o mês passado
+              </p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      <div>
-        <Label className="text-slate-300">Descrição</Label>
-        <Textarea
-          placeholder="Descreva a casa de apostas..."
-          value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-          className="bg-slate-900/50 border-slate-600"
-          rows={3}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label className="text-slate-300">Tipo de Comissão</Label>
-          <Select value={formData.commissionType} onValueChange={(value) => setFormData(prev => ({ ...prev, commissionType: value }))}>
-            <SelectTrigger className="bg-slate-900/50 border-slate-600">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="CPA">CPA (Custo Por Aquisição)</SelectItem>
-              <SelectItem value="RevShare">RevShare (Divisão de Receita)</SelectItem>
-              <SelectItem value="Hybrid">Hybrid (Misto)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label className="text-slate-300">
-            Valor da Comissão {formData.commissionType === 'RevShare' ? '(%)' : '(R$)'}
-          </Label>
-          <Input
-            type="number"
-            placeholder={formData.commissionType === 'RevShare' ? '35' : '150'}
-            value={formData.commissionValue}
-            onChange={(e) => setFormData(prev => ({ ...prev, commissionValue: e.target.value }))}
-            className="bg-slate-900/50 border-slate-600"
-            required
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label className="text-slate-300">Depósito Mínimo (R$)</Label>
-        <Input
-          type="number"
-          placeholder="10"
-          value={formData.minimumDeposit}
-          onChange={(e) => setFormData(prev => ({ ...prev, minimumDeposit: e.target.value }))}
-          className="bg-slate-900/50 border-slate-600"
-          required
-        />
-      </div>
-
-      <div>
-        <Label className="text-slate-300">Categorias</Label>
-        <div className="flex space-x-4 mt-2">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={formData.categories.includes('sports')}
-              onChange={() => toggleCategory('sports')}
-              className="rounded border-slate-600"
+        {/* Filtros */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar casas de apostas..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
             />
-            <span className="text-slate-300">Esportes</span>
-          </label>
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={formData.categories.includes('casino')}
-              onChange={() => toggleCategory('casino')}
-              className="rounded border-slate-600"
-            />
-            <span className="text-slate-300">Cassino</span>
-          </label>
+          </div>
+          
+          <div className="flex gap-2">
+            {categories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                onClick={() => setSelectedCategory(category)}
+                size="sm"
+              >
+                {category === 'all' ? 'Todas' : category}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="flex space-x-2 pt-4">
-        <Button type="submit" disabled={isLoading} className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-gray-900">
-          {isLoading ? 'Criando...' : 'Criar Casa'}
-        </Button>
-      </div>
-    </form>
-  );
-}
+        {/* Lista de Casas */}
+        {isLoading ? (
+          <div className="text-center py-8">
+            <p>Carregando casas de apostas...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredHouses.map((house: any) => (
+              <Card key={house.id} className="group hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {house.logoUrl ? (
+                        <img 
+                          src={house.logoUrl} 
+                          alt={house.name}
+                          className="w-10 h-10 rounded object-contain bg-white p-1"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded bg-slate-700 flex items-center justify-center">
+                          <Building2 className="w-5 h-5" />
+                        </div>
+                      )}
+                      <div>
+                        <CardTitle className="text-lg">{house.name}</CardTitle>
+                        <Badge variant={house.category === 'sports' ? 'default' : 'secondary'}>
+                          {house.category}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => setEditHouse(house)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.open(house.websiteUrl, '_blank')}>
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Visitar Site
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => setDeleteDialog({ open: true, house })}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Deletar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {house.description}
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">CPA Base</p>
+                      <p className="font-semibold text-green-400">R$ {house.baseCpaCommission || '0'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">RevShare</p>
+                      <p className="font-semibold text-blue-400">{house.baseRevSharePercent || '0'}%</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center gap-1">
+                      {house.isActive ? (
+                        <Badge variant="default" className="bg-green-600">
+                          <Zap className="w-3 h-3 mr-1" />
+                          Ativa
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">
+                          Inativa
+                        </Badge>
+                      )}
+                      
+                      {house.postbackToken && (
+                        <Badge variant="outline">
+                          <Shield className="w-3 h-3 mr-1" />
+                          Postback
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditHouse(house)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
-// Componente para edição de casa
-function BettingHouseEditView({ house }: { house: any }) {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Editar {house.name}</h1>
-          <p className="text-slate-400">Configure as configurações da casa de apostas</p>
-        </div>
-        <Button variant="outline">
-          <ExternalLink className="w-4 h-4 mr-2" />
-          Voltar à Lista
-        </Button>
-      </div>
+        {filteredHouses.length === 0 && !isLoading && (
+          <div className="text-center py-12">
+            <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Nenhuma casa encontrada</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm ? 'Tente ajustar os filtros de busca' : 'Comece criando sua primeira casa de apostas'}
+            </p>
+            <Button onClick={() => setShowCreateModal(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Casa de Apostas
+            </Button>
+          </div>
+        )}
 
-      {/* Usar o novo formulário completo */}
-      <BettingHouseForm 
-        open={true}
-        onOpenChange={() => {}}
-        editData={houseDetails}
-        mode="edit"
-      />
-    </div>
-  );
-
-  // Renderizar formulários modais
-  return (
-    <div className="space-y-6">
-      {/* ... resto do componente ... */}
-      
-      {/* Novo formulário modal */}
-      <BettingHouseForm 
-        open={showCreateModal}
-        onOpenChange={setShowCreateModal}
-        mode="create"
-      />
-      
-      {editHouse && (
-        <BettingHouseForm 
-          open={!!editHouse}
-          onOpenChange={(open) => !open && setEditHouse(null)}
-          editData={editHouse}
-          mode="edit"
+        {/* Modal de Criação/Edição */}
+        <ImprovedBettingHouseForm 
+          open={showCreateModal}
+          onOpenChange={setShowCreateModal}
+          mode="create"
         />
-      )}
-    </div>
+        
+        {editHouse && (
+          <ImprovedBettingHouseForm 
+            open={!!editHouse}
+            onOpenChange={(open) => !open && setEditHouse(null)}
+            editData={editHouse}
+            mode="edit"
+          />
+        )}
+
+        {/* Dialog de Confirmação de Exclusão */}
+        <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open, house: null })}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja deletar a casa "{deleteDialog.house?.name}"? 
+                Esta ação não pode ser desfeita e removerá todos os dados relacionados.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => deleteMutation.mutate(deleteDialog.house?.id)}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Deletar Casa
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </AdminLayout>
   );
 }
