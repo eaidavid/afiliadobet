@@ -1,8 +1,27 @@
 # 🚀 Comandos de Deploy - AfiliadosBet
 
-## Deploy Automático Completo
+## 🔥 SUPER DEPLOY - Comando TOP (RECOMENDADO)
 
-### Comando Único (Mais Simples)
+### Comando Único Definitivo - Faz TUDO Automaticamente
+```bash
+# Execute este comando e pronto! Faz tudo em uma linha:
+bash <(curl -sSL https://raw.githubusercontent.com/eaidavid/afiliadobet/main/deploy/super-deploy.sh) SEU_IP_VPS
+```
+
+**O que este comando faz:**
+- ✅ Instala todas as dependências (Node.js, PostgreSQL, Nginx, PM2, Webmin)
+- ✅ Configura firewall e SSL automaticamente
+- ✅ Clona seu repositório direto do GitHub
+- ✅ Faz build completo do projeto
+- ✅ Configura banco de dados PostgreSQL
+- ✅ Inicia aplicação com PM2
+- ✅ Configura Nginx com proxy reverso
+- ✅ Cria scripts de manutenção (update.sh, backup.sh, status.sh)
+- ✅ Testa tudo e confirma funcionamento
+
+## Deploy Alternativo (Método Anterior)
+
+### Comando Básico
 ```bash
 # No seu servidor VPS AlmaLinux como root:
 curl -sSL https://raw.githubusercontent.com/eaidavid/afiliadobet/main/deploy/deploy-vps.sh | bash -s afiliadosbet.com.br 5000
