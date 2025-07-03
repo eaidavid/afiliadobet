@@ -57,7 +57,9 @@ export const bettingHouses = pgTable("betting_houses", {
   commissionType: varchar("commission_type", { length: 20 }).default("CPA").notNull().$type<"CPA" | "RevShare" | "Hybrid">(),
   // Configurações de postback
   postbackUrl: text("postback_url"),
-  postbackToken: varchar("postback_token", { length: 255 }),
+  postbackToken: varchar("postback_token", { length: 255 }).unique(),
+  registrationPostbackUrl: text("registration_postback_url"),
+  depositPostbackUrl: text("deposit_postback_url"),
   apiUrl: text("api_url"),
   apiKey: varchar("api_key", { length: 255 }),
   authMethod: varchar("auth_method", { length: 20 }).default("Bearer"),
@@ -141,6 +143,11 @@ export const payments = pgTable("payments", {
   pixKey: varchar("pix_key", { length: 255 }),
   status: varchar("status", { length: 20 }).default("pending").notNull(),
   processedAt: timestamp("processed_at"),
+  processedBy: integer("processed_by").references(() => users.id),
+  adminNote: text("admin_note"),
+  rejectionReason: text("rejection_reason"),
+  proofDocument: text("proof_document"),
+  auditLog: text("audit_log"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

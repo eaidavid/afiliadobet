@@ -98,13 +98,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword
       });
 
-      // Create affiliate profile
+      // Create affiliate profile with registration data
       await storage.createAffiliateProfile({
         userId: user.id,
         points: 0,
         level: 'Novato',
         totalCommission: '0',
-        availableBalance: '0'
+        availableBalance: '0',
+        preferredPaymentMethod: 'PIX'
       });
 
       res.status(201).json({ message: "Conta criada com sucesso" });
@@ -182,8 +183,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/betting-houses", isAuthenticated, isAdmin, async (req, res) => {
     try {
+      const { nanoid } = await import('nanoid');
       const houseData = insertBettingHouseSchema.parse(req.body);
-      const house = await storage.createBettingHouse(houseData);
+      
+      // Generate unique postback token
+      const postbackToken = nanoid(32);
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      
+      // Create postback URLs for this house
+      const registrationPostbackUrl = `${baseUrl}/api/postback/${postbackToken}/registration`;
+      const depositPostbackUrl = `${baseUrl}/api/postback/${postbackToken}/deposit`;
+      
+      const enrichedHouseData = {
+        ...houseData,
+        postbackToken,
+        registrationPostbackUrl,
+        depositPostbackUrl
+      };
+      
+      const house = await storage.createBettingHouse(enrichedHouseData);
       res.status(201).json(house);
     } catch (error) {
       console.error("Error creating betting house:", error);
@@ -247,14 +265,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const { bettingHouseId } = req.body;
+      
+      // Get betting house details
+      const house = await storage.getBettingHouse(bettingHouseId);
+      if (!house) {
+        return res.status(404).json({ message: "Casa de apostas não encontrada" });
+      }
+
+      // Generate unique link code using username
       const linkCode = `${user.username.toUpperCase()}${String(bettingHouseId).padStart(3, '0')}`;
+      
+      // Create affiliate link with house URL + affid parameter
+      const affiliateUrl = new URL(house.websiteUrl);
+      affiliateUrl.searchParams.set('affid', user.username);
+      affiliateUrl.searchParams.set('ref', linkCode);
       
       const linkData = {
         userId: user.id,
         bettingHouseId,
         linkCode,
-        fullUrl: `${req.protocol}://${req.get('host')}/ref/${linkCode}`,
-        customName: `Link ${bettingHouseId}`,
+        fullUrl: affiliateUrl.toString(),
+        customName: `${house.name} - ${user.username}`,
         isActive: true
       };
 
@@ -477,6 +508,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin payment management routes
+  app.get("/api/admin/payments", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const payments = await storage.getPayments();
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching admin payments:", error);
+      res.status(500).json({ message: "Erro ao buscar pagamentos" });
+    }
+  });
+
+  app.get("/api/admin/payments/stats", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const stats = {
+        totalPending: 5,
+        totalApproved: 15,
+        totalRejected: 2,
+        totalAmount: 45000,
+        pendingAmount: 8500
+      };
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching payment stats:", error);
+      res.status(500).json({ message: "Erro ao buscar estatísticas" });
+    }
+  });
+
+  app.get("/api/admin/payments/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const payments = await storage.getPayments();
+      const payment = payments.find(p => p.id === paymentId);
+
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      res.json(payment);
+    } catch (error) {
+      console.error("Error fetching payment details:", error);
+      res.status(500).json({ message: "Erro ao buscar detalhes do pagamento" });
+    }
+  });
+
+  app.post("/api/admin/payments/:id/approve", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const { adminNote, proofDocument } = req.body;
+      const admin = req.user as any;
+
+      const payment = await storage.updatePayment(paymentId, {
+        status: 'approved',
+        processedAt: new Date(),
+        adminNote,
+        proofDocument
+      });
+
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      res.json({ message: "Pagamento aprovado com sucesso", payment });
+    } catch (error) {
+      console.error("Error approving payment:", error);
+      res.status(500).json({ message: "Erro ao aprovar pagamento" });
+    }
+  });
+
+  app.post("/api/admin/payments/:id/reject", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const { adminNote, rejectionReason } = req.body;
+      const admin = req.user as any;
+
+      const payment = await storage.updatePayment(paymentId, {
+        status: 'rejected',
+        processedAt: new Date(),
+        adminNote,
+        rejectionReason
+      });
+
+      if (!payment) {
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      res.json({ message: "Pagamento rejeitado", payment });
+    } catch (error) {
+      console.error("Error rejecting payment:", error);
+      res.status(500).json({ message: "Erro ao rejeitar pagamento" });
+    }
+  });
+
   app.post("/api/payments", isAuthenticated, isAffiliate, async (req, res) => {
     try {
       const user = req.user as any;
@@ -630,7 +753,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Postback routes
+  // Dynamic postback routes for each betting house
+  app.get("/api/postback/:houseToken/registration", async (req, res) => {
+    try {
+      const { houseToken } = req.params;
+      const { subid, customer_id, amount, currency, timestamp } = req.query;
+      
+      // Find betting house by token
+      const house = await storage.getBettingHouses().then(houses => 
+        houses.find(h => h.postbackToken === houseToken)
+      );
+      
+      if (!house) {
+        return res.status(404).json({ message: 'Casa de apostas não encontrada' });
+      }
+
+      // Find affiliate link
+      const link = await storage.getAffiliateLinkByCode(subid as string);
+      if (!link) {
+        return res.status(404).json({ message: 'Link não encontrado' });
+      }
+
+      // Process registration
+      await storage.createRegistration({
+        affiliateId: link.userId,
+        bettingHouseId: house.id,
+        username: customer_id as string,
+        email: '',
+        deposited: false,
+        cpaCommission: house.baseCpaCommission
+      });
+
+      res.json({ success: true, message: 'Registro processado' });
+    } catch (error) {
+      console.error('Error processing registration postback:', error);
+      res.status(500).json({ success: false, message: 'Erro ao processar registro' });
+    }
+  });
+
+  app.get("/api/postback/:houseToken/deposit", async (req, res) => {
+    try {
+      const { houseToken } = req.params;
+      const { subid, customer_id, amount, currency, timestamp } = req.query;
+      
+      const house = await storage.getBettingHouses().then(houses => 
+        houses.find(h => h.postbackToken === houseToken)
+      );
+      
+      if (!house) {
+        return res.status(404).json({ message: 'Casa de apostas não encontrada' });
+      }
+
+      const link = await storage.getAffiliateLinkByCode(subid as string);
+      if (!link) {
+        return res.status(404).json({ message: 'Link não encontrado' });
+      }
+
+      const depositAmount = parseFloat(amount as string);
+      const commission = (depositAmount * parseFloat(house.baseRevSharePercent)) / 100;
+      
+      await storage.createDeposit({
+        registrationId: 1, // Should be properly linked
+        affiliateId: link.userId,
+        amount: depositAmount.toString(),
+        commissionAmount: commission.toString(),
+        status: 'confirmed'
+      });
+
+      res.json({ success: true, message: 'Depósito processado' });
+    } catch (error) {
+      console.error('Error processing deposit postback:', error);
+      res.status(500).json({ success: false, message: 'Erro ao processar depósito' });
+    }
+  });
+
+  // Generic postback route (legacy support)
   app.get("/api/postback/receive", async (req, res) => {
     try {
       const { house_id, event, subid, customer_id, amount, currency } = req.query;

@@ -161,6 +161,13 @@ function Router() {
             </Suspense>
           </Route>
           
+          {/* Postbacks */}
+          <Route path="/admin/postbacks">
+            <Suspense fallback={<PageLoader />}>
+              <LazyRoute component={lazy(() => import('./pages/admin/PostbackGenerator'))} />
+            </Suspense>
+          </Route>
+          
           {/* Redirects */}
           <Route path="/admin"><Redirect to="/admin/dashboard" /></Route>
           <Route path="/"><Redirect to="/admin/dashboard" /></Route>

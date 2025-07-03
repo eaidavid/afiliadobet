@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
-import { LayoutDashboard, Users, Building, BarChart3, CreditCard, Settings, LogOut, Bell, ChevronRight, ChevronDown } from "lucide-react";
+import { LayoutDashboard, Users, Building, BarChart3, CreditCard, Settings, LogOut, Bell, ChevronRight, ChevronDown, Code } from "lucide-react";
 import Layout from "./Layout";
 import { useState } from "react";
 
@@ -46,6 +46,12 @@ const adminNavItems = [
     url: "/admin/payments", 
     icon: CreditCard,
     color: "text-emerald-400"
+  },
+  { 
+    title: "Postbacks & APIs", 
+    url: "/admin/postbacks", 
+    icon: Code,
+    color: "text-purple-400"
   },
   { 
     title: "Configurações", 
