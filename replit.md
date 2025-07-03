@@ -117,6 +117,29 @@ The system uses a relational database structure with the following main entities
 - **File Storage**: Prepared for CDN integration for logos and assets
 - **API Rate Limiting**: Framework in place for request throttling
 
+## Deployment Strategy
+
+### VPS AlmaLinux + Webmin Deployment
+- **Automated Scripts**: Complete deployment automation for AlmaLinux servers
+- **Quick Deploy**: One-command deployment process with error handling
+- **Production Ready**: Includes Nginx, PostgreSQL, PM2, SSL, and Webmin setup
+- **Monitoring**: System health checks and resource monitoring included
+
+### Deployment Files
+- `deploy/deploy-vps.sh`: Complete server setup for AlmaLinux + Webmin
+- `deploy/upload-project.sh`: Project file upload via rsync
+- `deploy/quick-deploy.sh`: One-command full deployment
+- `deploy/check-system.sh`: System health verification
+- `deploy/README-DEPLOY.md`: Complete deployment documentation
+
+### Production Configuration
+- **Server**: AlmaLinux with Webmin panel
+- **Web Server**: Nginx with reverse proxy and SSL
+- **Database**: PostgreSQL with automated setup
+- **Process Manager**: PM2 with clustering
+- **Security**: Firewall configuration and SSL certificates
+- **Monitoring**: Resource monitoring and log management
+
 ## Changelog
 
 ```
@@ -132,6 +155,9 @@ Changelog:
 - July 03, 2025. Formulário completo de casas de apostas com configurações avançadas
 - July 03, 2025. Gerador de teste específico para postbacks por casa
 - July 03, 2025. Rotas específicas /api/postback/{TOKEN}/registration e /api/postback/{TOKEN}/deposit
+- July 03, 2025. Scripts completos de deploy para VPS AlmaLinux + Webmin criados
+- July 03, 2025. Tema dourado aplicado em todos os modais e formulários
+- July 03, 2025. Melhorias de alinhamento responsivo na página de casas de apostas
 ```
 
 ## User Preferences
