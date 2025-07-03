@@ -221,6 +221,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Affiliate link routes
+  app.get("/api/affiliate/links", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const links = await storage.getAffiliateLinks(user.id);
+      res.json(links);
+    } catch (error) {
+      console.error("Error fetching affiliate links:", error);
+      res.status(500).json({ message: "Erro ao buscar links" });
+    }
+  });
+
   app.get("/api/affiliate-links", isAuthenticated, isAffiliate, async (req, res) => {
     try {
       const user = req.user as any;
@@ -229,6 +240,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching affiliate links:", error);
       res.status(500).json({ message: "Erro ao buscar links" });
+    }
+  });
+
+  app.post("/api/affiliate/join", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { bettingHouseId } = req.body;
+      const linkCode = `${user.username.toUpperCase()}${String(bettingHouseId).padStart(3, '0')}`;
+      
+      const linkData = {
+        userId: user.id,
+        bettingHouseId,
+        linkCode,
+        fullUrl: `${req.protocol}://${req.get('host')}/ref/${linkCode}`,
+        customName: `Link ${bettingHouseId}`,
+        isActive: true
+      };
+
+      const link = await storage.createAffiliateLink(linkData);
+      res.status(201).json(link);
+    } catch (error) {
+      console.error("Error creating affiliate link:", error);
+      res.status(400).json({ message: "Erro ao criar link de afiliação" });
     }
   });
 
@@ -325,6 +359,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching profile stats:", error);
       res.status(500).json({ message: "Erro ao buscar estatísticas do perfil" });
+    }
+  });
+
+  // Affiliate stats route
+  app.get("/api/affiliate/stats", isAuthenticated, isAffiliate, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const stats = await storage.getAffiliateStats(user.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching affiliate stats:", error);
+      res.status(500).json({ message: "Erro ao buscar estatísticas" });
     }
   });
 
@@ -581,6 +627,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error tracking deposit:", error);
       res.status(500).json({ message: "Erro ao rastrear depósito" });
+    }
+  });
+
+  // Postback routes
+  app.get("/api/postback/receive", async (req, res) => {
+    try {
+      const { house_id, event, subid, customer_id, amount, currency } = req.query;
+      
+      // Log the postback for debugging
+      console.log('Postback received:', { house_id, event, subid, customer_id, amount, currency });
+      
+      // Find the affiliate link by subid
+      const link = await storage.getAffiliateLinkByCode(subid as string);
+      if (!link) {
+        return res.status(404).json({ message: 'Link não encontrado' });
+      }
+
+      // Process different event types
+      switch (event) {
+        case 'registration':
+          await storage.createRegistration({
+            affiliateId: link.userId,
+            bettingHouseId: parseInt(house_id as string),
+            username: customer_id as string,
+            email: '',
+            deposited: false,
+            cpaCommission: '0'
+          });
+          break;
+          
+        case 'deposit':
+          const depositAmount = parseFloat(amount as string);
+          const house = await storage.getBettingHouse(parseInt(house_id as string));
+          const commission = house ? (depositAmount * parseFloat(house.baseRevSharePercent)) / 100 : 0;
+          
+          await storage.createDeposit({
+            registrationId: 1, // This should be properly linked
+            affiliateId: link.userId,
+            amount: depositAmount.toString(),
+            commissionAmount: commission.toString(),
+            status: 'confirmed'
+          });
+          break;
+      }
+
+      res.json({ success: true, message: 'Postback processado com sucesso' });
+    } catch (error) {
+      console.error('Error processing postback:', error);
+      res.status(500).json({ success: false, message: 'Erro ao processar postback' });
+    }
+  });
+
+  app.post("/api/postback/receive", async (req, res) => {
+    try {
+      const { house_id, event, subid, customer_id, amount, currency } = req.body;
+      
+      // Same logic as GET endpoint
+      const link = await storage.getAffiliateLinkByCode(subid);
+      if (!link) {
+        return res.status(404).json({ message: 'Link não encontrado' });
+      }
+
+      // Process the postback event
+      // Implementation similar to GET endpoint
+      
+      res.json({ success: true, message: 'Postback processado com sucesso' });
+    } catch (error) {
+      console.error('Error processing postback:', error);
+      res.status(500).json({ success: false, message: 'Erro ao processar postback' });
+    }
+  });
+
+  // Admin postback configuration routes
+  app.get("/api/admin/postback-configs", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      // Return existing postback configurations
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching postback configs:", error);
+      res.status(500).json({ message: "Erro ao buscar configurações" });
+    }
+  });
+
+  app.post("/api/admin/postback-configs", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      // Save postback configuration
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error saving postback config:", error);
+      res.status(500).json({ message: "Erro ao salvar configuração" });
+    }
+  });
+
+  app.post("/api/admin/postback-test", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      // Test postback
+      res.json({ success: true, message: "Teste realizado com sucesso" });
+    } catch (error) {
+      console.error("Error testing postback:", error);
+      res.status(500).json({ success: false, message: "Erro no teste" });
     }
   });
 

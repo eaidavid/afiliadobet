@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { lazy, Suspense } from "react";
 import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import Landing from "@/pages/Landing";
 import AdminLayout from "@/components/AdminLayout";
 import AffiliateLayout from "@/components/AffiliateLayout";
 import NotFound from "@/pages/not-found";
@@ -60,9 +62,10 @@ function Router() {
     return (
       <Switch>
         <Route path="/login" component={Login} />
-        <Route path="/register" component={Login} />
+        <Route path="/register" component={Register} />
         <Route path="/not-found" component={NotFound} />
-        <Route><Redirect to="/login" /></Route>
+        <Route path="/" component={Landing} />
+        <Route><Redirect to="/" /></Route>
       </Switch>
     );
   }

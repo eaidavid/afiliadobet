@@ -10,12 +10,22 @@ passport.use(new LocalStrategy(
     usernameField: 'email',
     passwordField: 'password'
   },
-  async (email: string, password: string, done) => {
+  async (identifier: string, password: string, done) => {
     try {
-      const user = await storage.getUserByEmail(email);
+      // Try to find user by email first, then by CPF
+      let user = await storage.getUserByEmail(identifier);
       
       if (!user) {
-        return done(null, false, { message: 'Email ou senha incorretos' });
+        // If not found by email, try to find by CPF (remove dots and dashes)
+        const cleanCpf = identifier.replace(/[.\-]/g, '');
+        if (cleanCpf.length === 11) {
+          // Try to find user by username if it looks like a CPF
+          user = await storage.getUserByUsername(cleanCpf);
+        }
+      }
+      
+      if (!user) {
+        return done(null, false, { message: 'Email/CPF ou senha incorretos' });
       }
 
       if (!user.isActive) {
@@ -25,7 +35,7 @@ passport.use(new LocalStrategy(
       const isValidPassword = await bcrypt.compare(password, user.password);
       
       if (!isValidPassword) {
-        return done(null, false, { message: 'Email ou senha incorretos' });
+        return done(null, false, { message: 'Email/CPF ou senha incorretos' });
       }
 
       return done(null, user);

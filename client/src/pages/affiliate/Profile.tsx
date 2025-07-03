@@ -48,6 +48,26 @@ export default function Profile({ section = 'personal' }: ProfileProps) {
     queryKey: ['/api/affiliate/profile/stats']
   });
 
+  // Estados locais
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    cpf: '',
+    birthDate: '',
+    pixKey: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    bio: '',
+    bankName: '',
+    agency: '',
+    account: '',
+    accountType: 'checking'
+  });
+
   // Mutation para atualizar perfil
   const updateProfileMutation = useMutation({
     mutationFn: (data: any) => apiRequest('/api/affiliate/profile', {
