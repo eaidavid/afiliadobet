@@ -195,7 +195,7 @@ Após o deploy, todas as informações importantes estarão em:
 
 ```bash
 # Deploy completo em um comando
-curl -sSL https://raw.githubusercontent.com/[SEU_REPO]/main/deploy/deploy-vps.sh | bash -s SEU_DOMINIO.COM 5000
+curl -sSL https://raw.githubusercontent.com/eaidavid/afiliadobet/main/deploy/deploy-vps.sh | bash -s afiliadosbet.com.br 5000
 
 # Ou se você já tem o arquivo
 bash deploy/deploy-vps.sh SEU_DOMINIO.COM 5000 && \
